@@ -7,17 +7,25 @@ var mapWmax = 1500;
 var mapH = mapHmax;
 var mapW = mapWmax;
 var uielem = [];
+var sim;
+
+function loadGrid(callback) {
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', '/dat/js-grid.json', true);
+    xobj.onreadystatechange = function () {
+        if (xobj.readyState == 4 && xobj.status == "200") {
+            callback(JSON.parse(xobj.responseText));
+        }
+   };
+   xobj.send(null);
+}
 
 window.onload = function () {
     canvas = document.getElementById('map');
     ctx = canvas.getContext('2d');
-    //ctx.textBaseline = "top";
-    ctx.mouse = {
-        x: 0,
-        y: 0,
-        clicked: false,
-        down: false
-    };
+    ctx.mouse = { x: 0, y: 0, clicked: false, down: false };
+    ctx.redraw = true;
 
     canvas.addEventListener("mousemove", function(e) {
         ctx.mouse.x = e.offsetX;
@@ -36,6 +44,11 @@ window.onload = function () {
         ctx.mouse.clicked = false;
     });
 
+    window.onresize = function(event) {
+        set_canvas_size();
+    };
+    set_canvas_size();
+
     var alertButton = new Button("Alert", 150, 50, 100, 30);
     var slider = new Slider("A quantity", 150, 80, 100, 0, 30);
     var check = new CheckBox("Label", 150, 110);
@@ -47,23 +60,33 @@ window.onload = function () {
     map.onload = draw_map;
     map.src = '/dat/js-usa.png';
 
+    loadGrid(function (dat) {
+        var usboard = new USAMapBoard(dat);
+        sim = new Simulation(usboard);
+        sim.addZombieSeed({'x': 1317, 'y': 587})
+    });
+
     registerAnimationRequest();
     requestAnimationFrame(draw, canvas);
 }
 
-function draw() {
+function set_canvas_size(){
     W = window.innerWidth;
     H = window.innerHeight;
     canvas.width  = W;
     canvas.height = H;
     mapH = Math.min(H, mapHmax, 0.6*W);
     mapW = Math.min(W, mapWmax, mapH/0.6);
+}
 
-    clear();
-    update_ui();
+function draw() {
+    if (ctx.redraw){
+        clear();
+        update_ui();
 
-    draw_map();
-    draw_ui();
+        draw_map();
+        draw_ui();
+    }
     requestAnimationFrame(draw, canvas);
 }
 
