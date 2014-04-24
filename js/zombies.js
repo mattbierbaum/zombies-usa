@@ -87,7 +87,7 @@ function draw_ui(){
 }
 
 function draw_map() {
-    ctx.drawImage(map, (W-mapW)/2, (H-mapH)/2, mapW, mapH);
+    ctx.drawImage(map, 0, 0, mapWmax, mapHmax, (W-mapW)/2, (H-mapH)/2, mapW, mapH);
 }
 
 // Provides requestAnimationFrame in a cross browser way.
@@ -100,7 +100,7 @@ function registerAnimationRequest() {
             window.oRequestAnimationFrame ||
             window.msRequestAnimationFrame ||
             function( callback,  element ) {
-                window.setTimeout( callback, 1 ); /*1000 / 60 );*/
+                window.setTimeout( callback, 32 );
             };
         } )();
     }
