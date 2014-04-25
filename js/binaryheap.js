@@ -31,7 +31,7 @@ BinaryHeap.prototype = {
     },
 
     pop: function() {
-        if (this.size() == 0) return null;
+        if (this.size() == 0) return -1;
 
         this.swap(0, this.last());
         var result = this.delete_end();

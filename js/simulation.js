@@ -62,7 +62,8 @@ function hashsite(s){ return s.x+","+s.y; }
 function hashbond(b){ return b.type+"|"+(b.s0+":"+b.s1); }
 
 function Simulation(board){
-    this.alpha = 1;
+    this.alpha = 10;
+    this.time = 0;
     this.sites = {};
     this.bonds = {};
     this.heap = new BinaryHeap(tauGetter, hashGetter);
@@ -125,5 +126,23 @@ Simulation.prototype = {
         }
         this.push_bond(s0, s0, s2z);
         this.push_bond(s0, s0, z2r);
-    }
+    },
+
+    dostep: function() {
+        var bond = this.heap.pop();
+        console.log(bond);
+        this.time += bond.tau;
+       
+        var site = this.sites[bond.s0];
+        if (bond.type == s2z)
+            inc_z(site);
+        else
+            inc_r(site);
+
+        // TODO - add cases for spread to new boxes (site.Z == 1)
+        // and for end of dynamics in a box (seems to be done automatically)
+
+        for (b in site.bonds)
+            this.update_bond(this.bonds[b]);
+    },
 }

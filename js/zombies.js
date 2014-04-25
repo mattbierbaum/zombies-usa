@@ -64,6 +64,7 @@ window.onload = function () {
         var usboard = new USAMapBoard(dat);
         sim = new Simulation(usboard);
         sim.addZombieSeed({'x': 1317, 'y': 587})
+        sim.addZombieSeed({'x': 1317, 'y': 588})
     });
 
     registerAnimationRequest();
@@ -81,6 +82,9 @@ function set_canvas_size(){
 
 function draw() {
     if (ctx.redraw){
+        if (sim)
+            sim.dostep();
+
         clear();
         update_ui();
 
