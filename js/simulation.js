@@ -23,15 +23,16 @@ USAMapBoard.prototype = {
 
     neigh: function (x,y) {
         sites = [];
-        for (var i=Math.max(x-1, 0); i<=Math.min(x+1, this.xmax-1); i++)
+        for (var i=Math.max(x-1, 0); i<=Math.min(x+1, this.xmax-1); i+=2)
             sites.push({'x': i, 'y': y});
-        for (var j=Math.max(y-1, 0); j<=Math.min(y+1, this.ymax-1); j++)
+        for (var j=Math.max(y-1, 0); j<=Math.min(y+1, this.ymax-1); j+=2)
             sites.push({'x': x, 'y': j});
         return sites;
     }
 }
 
 function tauGetter(bond){ return bond.tau; }
+function hashGetter(bond){ return bond.hash; }
 function Bond(s0, s1, type){
     // these are locations as hashes
     this.s0 = s0.hash;
@@ -57,29 +58,19 @@ function Site(x, y, N){
     this.hash = hashsite(this);
 }
 
-function hashpos(x,y){ return x+","+y; }
-function hashsite(s){ return hashpos(s.x, s.y); }
-function hashbond(b){ 
-    var h0 = b.s0; var h1 = b.s1; 
-    return b.type+"|"+((h0<h1)?(h0+":"+h1):(h1+":"+h0));
-}
+function hashsite(s){ return s.x+","+s.y; }
+function hashbond(b){ return b.type+"|"+(b.s0+":"+b.s1); }
 
 function Simulation(board){
+    this.alpha = 1;
     this.sites = {};
     this.bonds = {};
-    this.heap = new BinaryHeap(tauGetter);
+    this.heap = new BinaryHeap(tauGetter, hashGetter);
     this.board = board;
 }
 
 Simulation.prototype = {
-    init: function (zombies) {
-        var ln = zombies.length;
-        for (var i=0; i<ln; i++){
-            addZombieSeed(zombies[i]);            
-        }
-    },
-
-    get_sitexy: function (x,y) {
+    get_site: function (x,y) {
         var site = new Site(x, y, this.board.pop(x,y));
         if (this.sites[site.hash])
             return this.sites[site.hash];
@@ -96,16 +87,28 @@ Simulation.prototype = {
     },
 
     update_bond: function (bond) {
-        
+        var weight = (bond.type == s2z) ? this.alpha : 1;
+        weight *= this.sites[bond.s0].S * this.sites[bond.s1].Z;
+        var nextt = -Math.log(Math.random()) / weight;
+        bond.tau = nextt;
+
+        this.heap.remove(bond);
+        this.heap.push(bond);
+    },
+
+    push_bond: function (s0, s1, type){
+        var b = this.get_bond(s0, s1, type);
+        s0.bonds[b.hash] = 1;
+        s1.bonds[b.hash] = 1;
+        this.update_bond(b);
     },
 
     addZombieSeed: function (zombie){
         var x = zombie.x;
         var y = zombie.y;
-        var N = this.board.pop(x,y);
-        if (N <= 0) return;
 
-        s0 = this.get_sitexy(x,y);
+        s0 = this.get_site(x,y);
+        if (s0.N <= 0) return;
         inc_z(s0);
 
         var neighs = this.board.neigh(x,y);
@@ -113,17 +116,14 @@ Simulation.prototype = {
 
         for (var i=0; i<lneighs; i++){
             var temp = neighs[i];
-            var st = this.get_sitexy(temp.x, temp.y);
+            var st = this.get_site(temp.x, temp.y);
 
-            var bz = this.get_bond(s0, st, s2z);
-            s0.bonds[bz.hash] = 1;
-            st.bonds[bz.hash] = 1;
-            this.update_bond(bz);
-
-            var br = this.get_bond(s0, st, z2r);
-            s0.bonds[br.hash] = 1;
-            st.bonds[br.hash] = 1;
-            this.update_bond(br);
+            this.push_bond(s0, st, s2z);
+            this.push_bond(s0, st, z2r);
+            this.push_bond(st, s0, s2z);
+            this.push_bond(st, s0, z2r);
         }
+        this.push_bond(s0, s0, s2z);
+        this.push_bond(s0, s0, z2r);
     }
 }

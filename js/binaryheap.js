@@ -1,85 +1,101 @@
 // from: http://eloquentjavascript.net/appendix2.html
 
-function BinaryHeap(scoreFunction){
-    this.content = [];
-    this.locations = {};
-    this.scoreFunction = scoreFunction;
+function BinaryHeap(scoreFunction, locfunc){
+    this.heap= [];
+    this.loc = {};
+    this.score = scoreFunction;
+    this.locfunc = locfunc;
 }
 
 BinaryHeap.prototype = {
+    swap: function(i, j) {
+        var elmi = this.heap[i];
+        var elmj = this.heap[j];
+
+        this.loc[this.locfunc(elmi)] = j;
+        this.loc[this.locfunc(elmj)] = i;
+
+        this.heap[i] = elmj;
+        this.heap[j] = elmi;
+    },
+
     push: function(element) {
-        this.content.push(element);
-        this.bubbleUp(this.content.length - 1);
+        if (!(this.score(element) < 1/0))
+            return;
+        this.heap.push(element);
+        this.loc[this.locfunc(element)] = this.last();
+        this.upHeap(this.last());
     },
 
     pop: function() {
-        var result = this.content[0];
-        var end = this.content.pop();
-        if (this.content.length > 0) {
-            this.content[0] = end;
-            this.sinkDown(0);
-        }
+        this.swap(0, this.last());
+        var result = this.delete_end();
+
+        this.downHeap(0);
         return result;
     },
 
     remove: function(node) {
-        var length = this.content.length;
-        for (var i = 0; i < length; i++) {
-            if (this.content[i] != node) continue;
-            var end = this.content.pop();
-            if (i == length - 1) break;
-            this.content[i] = end;
-            this.bubbleUp(i);
-            this.sinkDown(i);
-            break;
-        }
+        var hs = this.locfunc(node);
+        if (!this.loc[hs])
+            return;
+        var ind = this.loc[hs];
+        this.swap(ind, this.last());
+        this.delete_end();
+        this.upHeap(ind);
+        this.downHeap(ind);
+    },
+
+    delete_end: function(){
+        var result = this.heap.pop();
+        delete this.loc[this.locfunc(result)];
+        return result;
     },
 
     size: function() {
-        return this.content.length;
+        return this.heap.length;
     },
 
-    bubbleUp: function(n) {
-        var element = this.content[n], score = this.scoreFunction(element);
-        while (n > 0) {
-            var parentN = Math.floor((n + 1) / 2) - 1,
-            parent = this.content[parentN];
-            if (score >= this.scoreFunction(parent))
-                break;
+    last: function() {
+        return this.size() - 1;
+    },
 
-            this.content[parentN] = element;
-            this.content[n] = parent;
-            n = parentN;
+    upHeap: function(n) {
+        while (true){
+            if (n > 0){
+                var up = (n-1)>>1;
+                var score0 = this.score(this.heap[n]);
+                var score1 = this.score(this.heap[up]);
+                if (score0 < score1) {
+                    this.swap(n, up);
+                    n = up;
+                } else break;
+            } else break;
         }
     },
 
-    sinkDown: function(n) {
-        var length = this.content.length,
-        element = this.content[n],
-        elemScore = this.scoreFunction(element);
-
+    downHeap: function(n) {
+        var size = this.size();
         while(true) {
-            var child2N = (n + 1) * 2, child1N = child2N - 1;
-            var swap = null;
-            if (child1N < length) {
-                var child1 = this.content[child1N],
-                child1Score = this.scoreFunction(child1);
-                if (child1Score < elemScore)
-                    swap = child1N;
+            var swp = null;
+            var child1 = 2*n+1;
+            var child2 = child1+1;
+ 
+            var score0 = this.score(heap[n]);
+            if (child1 < size){
+                var score1 = this.score(heap[child1]);
+                if (score1 < score0)
+                    swp = child1;
             }
 
-            if (child2N < length) {
-                var child2 = this.content[child2N],
-                child2Score = this.scoreFunction(child2);
-                if (child2Score < (swap == null ? elemScore : child1Score))
-                    swap = child2N;
+            if (child2 < size){
+                var score2 = this.score(heap[child2]);
+                if (score2 < (swp == null ? score0 : score1))
+                    swp = child2;
             }
 
-            if (swap == null) break;
-
-            this.content[n] = this.content[swap];
-            this.content[swap] = element;
-            n = swap;
-        }
-    }
+            if (swp == null) break;
+            this.swap(n, swp);
+       }
+    },
 };
