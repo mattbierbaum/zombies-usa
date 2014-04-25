@@ -1,5 +1,5 @@
-var s2z = "Z";
-var z2r = "R";
+var s2z = "B";
+var z2r = "K";
 
 function inc_z(s){
     var diff = (s.S == 0 || s.Z == s.N)?0:1;
@@ -18,7 +18,7 @@ function USAMapBoard(dat){
 
 USAMapBoard.prototype = {
     pop: function (x,y) {
-        return this.dat[y][x];
+        return Math.floor(Math.pow(this.dat[y][x], 0.25) + 1*(this.dat[y][x] > 0));
     },
 
     neigh: function (x,y) {
@@ -62,7 +62,7 @@ function hashsite(s){ return s.x+","+s.y; }
 function hashbond(b){ return b.type+"|"+(b.s0+":"+b.s1); }
 
 function Simulation(board){
-    this.alpha = 10;
+    this.alpha = 1.2;
     this.time = 0;
     this.sites = {};
     this.bonds = {};
@@ -104,10 +104,7 @@ Simulation.prototype = {
         this.update_bond(b);
     },
 
-    addZombieSeed: function (zombie){
-        var x = zombie.x;
-        var y = zombie.y;
-
+    addZombieSeed: function (x, y){
         s0 = this.get_site(x,y);
         if (s0.N <= 0) return;
         inc_z(s0);
@@ -130,19 +127,21 @@ Simulation.prototype = {
 
     dostep: function() {
         var bond = this.heap.pop();
-        console.log(bond);
-        this.time += bond.tau;
-       
-        var site = this.sites[bond.s0];
-        if (bond.type == s2z)
-            inc_z(site);
-        else
-            inc_r(site);
+        if (!bond) return;
 
-        // TODO - add cases for spread to new boxes (site.Z == 1)
-        // and for end of dynamics in a box (seems to be done automatically)
+        this.time += bond.tau;
+        var site = this.sites[bond.s0];
+        if (bond.type == s2z){
+            if (site.Z == 0)
+                this.addZombieSeed(site.x, site.y);
+            else
+                inc_z(site);
+        }
+        if (bond.type == z2r) inc_r(site);
 
         for (b in site.bonds)
             this.update_bond(this.bonds[b]);
+
+        return site;
     },
 }

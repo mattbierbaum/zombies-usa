@@ -23,7 +23,7 @@ BinaryHeap.prototype = {
     },
 
     push: function(element) {
-        if (!(this.score(element) < 1/0))
+        if (!(this.score(element) < 1/0) || !element.tau)
             return;
         this.heap.push(element);
         this.loc[this.locfunc(element)] = this.last();
@@ -31,7 +31,7 @@ BinaryHeap.prototype = {
     },
 
     pop: function() {
-        if (this.size() == 0) return -1;
+        if (this.size() == 0) return;
 
         this.swap(0, this.last());
         var result = this.delete_end();
@@ -45,10 +45,15 @@ BinaryHeap.prototype = {
         if (!this.loc[hs])
             return;
         var ind = this.loc[hs];
-        this.swap(ind, this.last());
-        this.delete_end();
-        this.upHeap(ind);
-        this.downHeap(ind);
+
+        if (ind != this.last()){
+            this.swap(ind, this.last());
+            this.delete_end();
+            this.upHeap(ind);
+            this.downHeap(ind);
+        } else {
+            this.delete_end();
+        }
     },
 
     delete_end: function(){
