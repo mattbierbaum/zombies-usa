@@ -14,6 +14,19 @@ var sim;
 var offscreen;
 var ctxoff;
 
+function toFixed(value, precision, negspace) {
+    negspace = typeof negspace !== 'undefined' ? negspace : '';
+    var precision = precision || 0;
+    var sneg = (value < 0) ? "-" : negspace;
+    var neg = value < 0;
+    var power = Math.pow(10, precision);
+    var value = Math.round(value * power);
+    var integral = String(Math.abs((neg ? Math.ceil : Math.floor)(value/power)));
+    var fraction = String((neg ? -value : value) % power);
+    var padding = new Array(Math.max(precision - fraction.length, 0) + 1).join('0');
+    return sneg + (precision ? integral + '.' +  padding + fraction : integral);
+}
+
 function loadGrid(callback) {
     var xobj = new XMLHttpRequest();
     xobj.overrideMimeType("application/json");
@@ -78,9 +91,7 @@ window.onload = function () {
     loadGrid(function (dat) {
         var usboard = new USAMapBoard(dat);
         sim = new Simulation(usboard);
-        //sim.addZombieSeed(1317-380, 587)
-        //sim.addZombieSeed(1317-480, 588)
-        sim.alpha = 1.2;
+        sim.alpha = 1.4;
     });
 }
 
@@ -96,6 +107,8 @@ function set_canvas_size(){
 function draw() {
     if (ctx.redraw){
         if (sim){
+            var nexttime = sim.time+0.001;
+            //while (sim.heap.size() > 0 && sim.time < nexttime){
             for (var t=0; t<1000; t++){
                 site = sim.dostep();
                 if (!site) continue;
@@ -122,6 +135,7 @@ function draw() {
 
         draw_map();
         draw_ui();
+
     }
     requestAnimationFrame(draw, canvas);
 }
@@ -150,6 +164,12 @@ function draw_map() {
 
     ctx.drawImage(map, 0, 0, mapWmax, mapHmax, (W-mapW)/2, (H-mapH)/2, mapW, mapH);
     ctx.drawImage(offscreen, 0, 0, mapWmax, mapHmax, (W-mapW)/2, (H-mapH)/2, mapW, mapH);
+
+    if (sim){
+        ctx.font = '24px sans-serif';
+        ctx.fillStyle='rgba(255,255,255,0.8)';
+        ctx.fillText(toFixed(sim.time*2,4) + " hours", 20, 50);
+    }
 }
 
 // Provides requestAnimationFrame in a cross browser way.

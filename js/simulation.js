@@ -2,12 +2,10 @@ var s2z = "B";
 var z2r = "K";
 
 function inc_z(s){
-    var diff = (s.S == 0 || s.Z == s.N)?0:1;
-    s.S = s.S - diff; s.Z = s.Z + diff;
+    s.S = s.S - 1; s.Z = s.Z + 1;
 }
 function inc_r(s){
-    var diff = (s.Z == 0 || s.R == s.N)?0:1;
-    s.Z = s.Z - diff; s.R = s.R + diff;
+    s.Z = s.Z - 1; s.R = s.R + 1;
 }
 
 function USAMapBoard(dat){
@@ -18,7 +16,7 @@ function USAMapBoard(dat){
 
 USAMapBoard.prototype = {
     pop: function (x,y) {
-        return Math.floor(Math.pow(this.dat[y][x], 0.25) + 1*(this.dat[y][x] > 0));
+        return Math.floor(Math.pow(this.dat[y][x], 0.5) + 1*(this.dat[y][x] > 0));
     },
 
     neigh: function (x,y) {
@@ -38,8 +36,6 @@ function Bond(s0, s1, type){
     this.s0 = s0.hash;
     this.s1 = s1.hash;
     this.type = type;
-
-    //calculate this here
     this.tau = 0;
     this.hash = hashbond(this);
 }
@@ -76,7 +72,7 @@ Simulation.prototype = {
         if (this.sites[site.hash])
             return this.sites[site.hash];
         this.sites[site.hash] = site;
-        return site;
+        return this.sites[site.hash];
     },
 
     get_bond: function (s0, s1, type){
@@ -84,17 +80,20 @@ Simulation.prototype = {
         if (this.bonds[bond.hash])
             return this.bonds[bond.hash];
         this.bonds[bond.hash] = bond;
-        return bond;
+        return this.bonds[bond.hash];
     },
 
     update_bond: function (bond) {
-        var weight = (bond.type == s2z) ? this.alpha : 1;
-        weight *= this.sites[bond.s0].S * this.sites[bond.s1].Z;
-        var nextt = -Math.log(Math.random()) / weight;
+        var weight = 0;
+        if (bond.type == s2z) weight = this.alpha * this.sites[bond.s0].S * this.sites[bond.s1].Z;
+        if (bond.type == z2r) weight = this.sites[bond.s0].Z * this.sites[bond.s1].S;
+        var nextt = -Math.log(Math.random()) / weight + this.time;
         bond.tau = nextt;
 
         this.heap.remove(bond);
-        this.heap.push(bond);
+
+        if (weight > 0 && (bond.tau < 1/0) )
+            this.heap.push(bond);
     },
 
     push_bond: function (s0, s1, type){
@@ -129,7 +128,7 @@ Simulation.prototype = {
         var bond = this.heap.pop();
         if (!bond) return;
 
-        this.time += bond.tau;
+        this.time = bond.tau;
         var site = this.sites[bond.s0];
         if (bond.type == s2z){
             if (site.Z == 0)
@@ -137,7 +136,8 @@ Simulation.prototype = {
             else
                 inc_z(site);
         }
-        if (bond.type == z2r) inc_r(site);
+        if (bond.type == z2r) 
+            inc_r(site);
 
         for (b in site.bonds)
             this.update_bond(this.bonds[b]);
