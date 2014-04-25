@@ -1,7 +1,10 @@
 // from: http://eloquentjavascript.net/appendix2.html
 
+function score_int(a) { return a; }
+function score_loc(a) { return a; }
+
 function BinaryHeap(scoreFunction, locfunc){
-    this.heap= [];
+    this.heap = [];
     this.loc = {};
     this.score = scoreFunction;
     this.locfunc = locfunc;
@@ -28,6 +31,8 @@ BinaryHeap.prototype = {
     },
 
     pop: function() {
+        if (this.size() == 0) return null;
+
         this.swap(0, this.last());
         var result = this.delete_end();
 
@@ -62,14 +67,14 @@ BinaryHeap.prototype = {
 
     upHeap: function(n) {
         while (true){
+            var score = this.score(this.heap[n]);
             if (n > 0){
-                var up = (n-1)>>1;
-                var score0 = this.score(this.heap[n]);
+                var up = Math.floor((n + 1) / 2) - 1;
                 var score1 = this.score(this.heap[up]);
-                if (score0 < score1) {
-                    this.swap(n, up);
-                    n = up;
-                } else break;
+                if (score > score1)
+                    break;
+                this.swap(n, up);
+                n = up;
             } else break;
         }
     },
@@ -81,21 +86,21 @@ BinaryHeap.prototype = {
             var child1 = 2*n+1;
             var child2 = child1+1;
  
-            var score0 = this.score(heap[n]);
+            var score0 = this.score(this.heap[n]);
             if (child1 < size){
-                var score1 = this.score(heap[child1]);
-                if (score1 < score0)
-                    swp = child1;
+                var score1 = this.score(this.heap[child1]);
+                if (score1 < score0) swp = child1;
             }
 
             if (child2 < size){
-                var score2 = this.score(heap[child2]);
-                if (score2 < (swp == null ? score0 : score1))
-                    swp = child2;
+                var score2 = this.score(this.heap[child2]);
+                var cmp = (swp == null) ? score0 : score1;
+                if (score2 < cmp) swp = child2;
             }
 
             if (swp == null) break;
             this.swap(n, swp);
+            n = swp;
        }
     },
 };
