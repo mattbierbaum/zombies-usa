@@ -58,7 +58,8 @@ function hashsite(s){ return s.x+","+s.y; }
 function hashbond(b){ return b.type+"|"+(b.s0+":"+b.s1); }
 
 function Simulation(board){
-    this.alpha = 1.2;
+    this.alpha = 1;
+    this.mu = 1;
     this.time = 0;
     this.sites = {};
     this.bonds = {};
@@ -87,6 +88,7 @@ Simulation.prototype = {
         var weight = 0;
         if (bond.type == s2z) weight = this.alpha * this.sites[bond.s0].S * this.sites[bond.s1].Z;
         if (bond.type == z2r) weight = this.sites[bond.s0].Z * this.sites[bond.s1].S;
+        weight *= (bond.s0 == bond.s1) ? 1 : this.mu;
         var nextt = -Math.log(Math.random()) / weight + this.time;
         bond.tau = nextt;
 

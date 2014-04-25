@@ -92,6 +92,7 @@ window.onload = function () {
         var usboard = new USAMapBoard(dat);
         sim = new Simulation(usboard);
         sim.alpha = 1.4;
+        sim.mu = 1./(75*sim.alpha);
     });
 }
 
