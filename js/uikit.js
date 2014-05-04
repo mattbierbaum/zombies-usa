@@ -27,6 +27,7 @@ var UIObject = {
     teal: 'rgba(45,140,125,0.9)',
     red: 'rgba(194,0,24,0.9)',
     white: 'rgba(255,255,255,0.8)',
+    hidden: false,
 };
 
 var Button = function(text, x, y, width, height) {
@@ -53,7 +54,8 @@ Button.prototype.update = function(canvas) {
 }
 
 Button.prototype.draw = function(canvas) {
-    //set color
+    if (this.hidden) return;
+    
     if (this.hovered) {
         canvas.fillStyle = this.red;
     } else {
@@ -115,6 +117,8 @@ Slider.prototype.update = function(canvas) {
 }
 
 Slider.prototype.draw = function(canvas) {
+    if (this.hidden) return;
+
     //draw the bar
     canvas.fillStyle = this.gray;
     canvas.fillRect(this.x, this.y + (this.height/4), this.width, this.height/2);
@@ -138,7 +142,7 @@ Slider.prototype.draw = function(canvas) {
     canvas.font = fontSize + "px sans-serif";
 
     //text position
-    var txt = ""+this.value;
+    var txt = toFixed(this.value,2);
     var textSize = canvas.measureText(txt);
     var textX = this.x + (this.width) + (textSize.width / 2);
     var textY = this.y + (this.height/2) + (fontSize/(1.5*2));
@@ -178,6 +182,8 @@ CheckBox.prototype.update = function(canvas) {
 }
 
 CheckBox.prototype.draw = function(canvas) {
+    if (this.hidden) return;
+
     //draw outer box
     if (this.hovered)
         canvas.strokeStyle = this.white;

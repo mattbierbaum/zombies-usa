@@ -11,7 +11,7 @@ function GUI(elem) {
     this.mapcopy;
     this.overlay;
     this.uielem = [];
-    this.fps = 0;
+    this.showcontrols = true;
 }
 
 GUI.prototype = {
@@ -23,7 +23,8 @@ GUI.prototype = {
         });
     },
 
-    init: function(){
+    init: function(sim){
+        this.sim = sim;
         this.canvas = document.getElementById(this.elem);
         this.ctx = this.canvas.getContext('2d');
         this.ctx.mouse = { x: 0, y: 0, clicked: false, down: false };
@@ -69,11 +70,35 @@ GUI.prototype = {
 
         this.set_canvas_size();
 
-        //var alertButton = new Button("Alert", 150, 50, 100, 30);
-        //var slider = new Slider("A quantity", 150, 80, 100, 0, 30);
-        //var check2 = new CheckBox("Show graph", 20, 40);
-        var check1 = new CheckBox("Show controls", 20, 20);
-        this.uielem.push(check1);
+        this.check_control = new CheckBox("Show controls", 20, 20);
+        this.check_control.checked = this.showcontrols;
+        this.check_control.handler = this.bind(function() {
+            this.showcontrols = !this.showcontrols;
+             
+            for (var i=0; i<this.uielem.length; i++)
+                this.uielem[i].hidden = !this.showcontrols;
+        });
+
+        var left = 20;
+        var width = 150;
+        var button_width = 100;
+        var button_height = 30;
+        var alertButton = new Button("Reset", left+width/2 - button_width/2 , 150, button_width, button_height);
+        var slidera = new Slider("Alpha", left+50, 90, 90, 0, 3);
+        var sliderm = new Slider("Mu", left+50, 115, 90, 1, 500);
+        alertButton.handler = this.bind(function (){ });
+        slidera.handler = this.bind(function (val){ this.sim.alpha = val; });
+        sliderm.handler = this.bind(function (val){ this.sim.mu =  1./(val*this.sim.alpha); });
+    
+        slidera.value = this.sim.alpha;
+        sliderm.value = 75;
+
+        this.uielem.push(alertButton);
+        this.uielem.push(slidera);
+        this.uielem.push(sliderm);
+
+        for (var i=0; i<this.uielem.length; i++)
+            this.uielem[i].hidden = !this.showcontrols;
 
         this.map = new Image();
         this.map.onload = (this.bind(
@@ -118,7 +143,7 @@ GUI.prototype = {
             this.ctx.font = '24px sans-serif';
             this.ctx.fillStyle='rgba(255,255,255,0.8)';
             this.ctx.fillText(toFixed(sim.time*2,4) + " hours", 20, 50);
-            this.ctx.fillText(toFixed(fps,4), 20, 80);
+            //this.ctx.fillText(toFixed(sim.fps,4), 20, 80);
         }
     },
 
@@ -128,7 +153,7 @@ GUI.prototype = {
                 var x = this.ctx.mouse.x;
                 var y = this.ctx.mouse.y;
                 x = Math.floor((x - (this.W-this.mapW)/2)*this.mapWmax/this.mapW);
-                y = Math.floor(900 - (y - (this.H-this.mapH)/2)*this.mapHmax/this.mapH);
+                y = Math.floor(this.mapHmax - (y - (this.H-this.mapH)/2)*this.mapHmax/this.mapH);
                 if (x > 0 && x < this.mapWmax && y > 0 && y < this.mapHmax)
                     this.clicked = {'x':x, 'y':y};
             }
@@ -141,17 +166,19 @@ GUI.prototype = {
             this.draw_map();
             this.draw_overlay();
             this.draw_ui();
-
+            this.draw_timing(this.sim);
             registerAnimationRequest(this.bind(function(){this.draw()}));
         }
     },
     
     update_ui: function(){
+        this.check_control.update(this.ctx);
         for (var i=0; i<this.uielem.length; i++)
             this.uielem[i].update(this.ctx);
     },
     
     draw_ui: function(){
+        this.check_control.draw(this.ctx);
         for (var i=0; i<this.uielem.length; i++)
             this.uielem[i].draw(this.ctx);
     },
@@ -160,8 +187,6 @@ GUI.prototype = {
         var i = site.x;
         var j = this.mapHmax-site.y;
         var ind = 4*(i+j*this.map.width);
-        //console.log(this.mapcopy.data[ind]);
-        //console.log(Math.floor(this.mapcopy.data[ind]*(site.N-site.R)/site.N));
         this.overlay.data[ind+0] = Math.floor(this.mapcopy.data[ind]*(site.N-site.R)/site.N);
         this.overlay.data[ind+1] = 0;
         this.overlay.data[ind+2] = 0;
@@ -169,9 +194,8 @@ GUI.prototype = {
     },
 }
 
-// Provides requestAnimationFrame in a cross browser way.
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 window.registerAnimationRequest = window.webkitRequestAnimationFrame ||
     window.mozRequestAnimationFrame ||  window.oRequestAnimationFrame ||
-    window.msRequestAnimationFrame || function(callback) { window.setTimeout( callback, 16 ); };
+    window.msRequestAnimationFrame || function(callback) { window.setTimeout( callback, 32); };
 
