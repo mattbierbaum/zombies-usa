@@ -1,5 +1,19 @@
+var canvas;
+var ctx;
+var W,H;
+var map;
+var mapcopy;
+var overlay;
+var mapHmax = 900;
+var mapWmax = 1500;
+var mapH = mapHmax;
+var mapW = mapWmax;
+var uielem = [];
 var sim;
-var ui;
+var fps = 0;
+
+var offscreen;
+var ctxoff;
 
 function toFixed(value, precision, negspace) {
     negspace = typeof negspace !== 'undefined' ? negspace : '';

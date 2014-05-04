@@ -106,7 +106,7 @@ Slider.prototype.update = function(canvas) {
         var range = this.max - this.min;
         var percent = (pos - this.x) / this.width;
 
-        this.value = Math.round(this.min + (percent * range));
+        this.value = (this.min + (percent * range));
 
         if (!_.isUndefined(this.handler)) {
             this.handler(this.value);
