@@ -1,3 +1,4 @@
+var KEYSPACE = 32;
 var zombies;
 
 window.onload = function () {
@@ -21,6 +22,7 @@ function ZombiesUI() {
     this.showcontrols = true;
     this.play = true;
     this.stepsper = 500;
+    this.keys = {};
 }
 
 ZombiesUI.prototype = {
@@ -82,6 +84,19 @@ ZombiesUI.prototype = {
         window.onresize = this.bind(
             function(event) {this.set_canvas_size(); }
         );
+
+        document.body.addEventListener('keyup', this.bind(function(ev) {
+            if (ev.keyCode == KEYSPACE) {
+                ev.preventDefault(); this.keys[KEYSPACE] = 0;
+            }
+        }), false);
+        document.body.addEventListener('keydown', this.bind(function(ev) {
+            if (ev.keyCode == KEYSPACE) {
+                ev.preventDefault();
+                this.playpause();
+            }
+        }), false);
+
 
         this.set_canvas_size();
 
@@ -205,13 +220,11 @@ ZombiesUI.prototype = {
                     this.sim.addZombieSeed(x, y);
             }
 
-            this.clear();
-
-            this.draw_map();
-            this.draw_overlay();
-            this.draw_timing(this.sim);
         }
-
+        this.clear();
+        this.draw_timing(this.sim);
+        this.draw_map();
+        this.draw_overlay();
         this.update_ui();
         this.draw_ui();
         registerAnimationRequest(this.bind(function(){this.draw()}));
