@@ -72,10 +72,14 @@ ZombiesUI.prototype = {
         // add even listeners for the mouse
         this.canvas.addEventListener("mousemove", this.bind(
             function(e) {
-                this.ctx.mouse.x = e.offsetX;
-                this.ctx.mouse.y = e.offsetY;
-                this.ctx.mouse.clicked = (e.which == 1 && !this.ctx.mouse.down);
-                this.ctx.mouse.down = (e.which == 1);
+                var xpos = e.offsetX;
+                var ypos = e.offsetY;
+                if (xpos == undefined) {
+                    xpos = e.pageX;
+                    ypos = e.pageY;
+                }
+                this.ctx.mouse.x = xpos;
+                this.ctx.mouse.y = ypos;
             }
         ));
 

@@ -67,7 +67,7 @@ Button.prototype.draw = function(canvas) {
 
     //text options
     var fontSize = 14;
-    canvas.setFillColor(1, 1, 1, 1.0);
+    canvas.fillStyle = this.white;
     canvas.font = fontSize + "px sans-serif";
 
     //text position
@@ -123,7 +123,6 @@ Slider.prototype.draw = function(canvas) {
     canvas.fillStyle = this.gray;
     canvas.fillRect(this.x, this.y + (this.height/4), this.width, this.height/2);
 
-    //set color
     if (this.hovered) {
         canvas.fillStyle = this.red;
     } else {
@@ -138,7 +137,7 @@ Slider.prototype.draw = function(canvas) {
 
     //text options
     var fontSize = 14;
-    canvas.setFillColor(1, 1, 1, 1.0);
+    canvas.fillStyle = this.white;
     canvas.font = fontSize + "px sans-serif";
 
     //text position
@@ -190,7 +189,7 @@ CheckBox.prototype.draw = function(canvas) {
     else
         canvas.strokeStyle = this.gray;
 
-    canvas.setLineWidth(2);
+    canvas.lineWidth = 2;
     canvas.strokeRect(this.x, this.y, this.width, this.height);
 
     //draw check or x
@@ -198,14 +197,11 @@ CheckBox.prototype.draw = function(canvas) {
     if (this.checked) {
         canvas.fillStyle = this.red;
         canvas.fillText("\u2715", this.x+1, this.y+this.height-1);
-    } else {
-        //canvas.setFillColor(0.6, 0.2, 0.2, 1.0);
-        //canvas.fillText("\u2713", this.x+1, this.y+this.height-1);
     }
 
     //text options
     var fontSize = 14;
-    canvas.setFillColor(1, 1, 1, 1.0);
+    canvas.fillStyle = this.white;
     canvas.font = fontSize + "px sans-serif";
     //text position
     var textSize = canvas.measureText(this.label);
@@ -232,7 +228,7 @@ Container.prototype.draw = function(canvas){
     canvas.fillRect(this.x, this.y, this.width, this.height);
 
     canvas.strokeStyle = this.colorborder;
-    canvas.setLineWidth(2);
+    canvas.lineWidth = 2;
     canvas.strokeRect(this.x, this.y, this.width, this.height);
 }
 
@@ -281,7 +277,7 @@ TextBox.prototype.setText = function(txt, ctx){
 TextBox.prototype.draw = function(canvas){
     if (this.hidden) return;
 
-    canvas.setFillColor(1, 1, 1, 1.0);
+    canvas.fillStyle = this.white;
     canvas.font = this.fontsize + "px sans-serif";
 
     var h = this.fontsize/(1*2);
