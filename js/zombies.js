@@ -1,4 +1,5 @@
-var KEYSPACE = 32;
+var KEY_P = 80;
+var KEY_Q = 81;
 var zombies;
 
 window.onload = function () {
@@ -85,22 +86,21 @@ ZombiesUI.prototype = {
             function(event) {this.set_canvas_size(); }
         );
 
-        document.body.addEventListener('keyup', this.bind(function(ev) {
-            if (ev.keyCode == KEYSPACE) {
-                ev.preventDefault(); this.keys[KEYSPACE] = 0;
-            }
-        }), false);
         document.body.addEventListener('keydown', this.bind(function(ev) {
-            if (ev.keyCode == KEYSPACE) {
+            if (ev.keyCode == KEY_P) {
                 ev.preventDefault();
                 this.playpause();
+            }
+            if (ev.keyCode == KEY_Q) {
+                ev.preventDefault();
+                this.init();
             }
         }), false);
 
 
         this.set_canvas_size();
 
-        this.check_control = new CheckBox("Show controls", 20, 20);
+        this.check_control = new CheckBox("Show controls", 35, 20);
         this.check_control.checked = this.showcontrols;
         this.check_control.handler = this.bind(function() {
             this.showcontrols = !this.showcontrols;
@@ -113,9 +113,9 @@ ZombiesUI.prototype = {
         var width = 150;
         var button_width = 100;
         var button_height = 30;
-        this.pauseButton = new Button("Pause", left+width/2 - button_width/2, 
+        this.pauseButton = new Button("Pause (P)", left+width/2 - button_width/2,
                 185, button_width, button_height);
-        var resetButton = new Button("Reset", left+width/2 - button_width/2, 
+        var resetButton = new Button("Reset (R)", left+width/2 - button_width/2,
                 225, button_width, button_height);
         var slidera = new Slider("alpha", left+50, 90, 90, 0, 3);
         var sliderm = new Slider("mu", left+50, 115, 90, 1, 500);
@@ -157,9 +157,9 @@ ZombiesUI.prototype = {
     playpause: function(){
         this.play = !this.play;
         if (this.play)
-            this.pauseButton.text = "Pause";
+            this.pauseButton.text = "Pause (P)";
         else
-            this.pauseButton.text = "Play";
+            this.pauseButton.text = "Play (P)";
     },
 
     set_canvas_size: function(){
@@ -192,7 +192,7 @@ ZombiesUI.prototype = {
         if (sim){
             this.ctx.font = '24px sans-serif';
             this.ctx.fillStyle='rgba(255,255,255,0.8)';
-            this.ctx.fillText(toFixed(sim.time*2,4) + " hours", 20, 50);
+            this.ctx.fillText(toFixed(sim.time*2,4) + " hours", 30, 60);
             //this.ctx.fillText(toFixed(sim.fps,4), 20, 80);
         }
     },
