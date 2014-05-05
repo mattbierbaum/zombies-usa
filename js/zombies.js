@@ -1,10 +1,21 @@
+var helptext = "\
+Welcome to Zombietown USA, a disease dynamics simulation of zombism across the USA. \
+We use Gillespie dynamics on block-level census data from 2010 using 308 \
+million people interacting across the continental US.\n\n\
+Parameters:\n\n\
+alpha - bite to kill ratio\n\
+mu - inter-cell propogation speed\n\n\
+Controls:\n\n\
+Click on the map to place a new zombie, and use the controls on the left to \
+change parameters of the simulation. ";
+
 var KEY_P = 80;
 var KEY_Q = 81;
-var zombies;
+var z;
 
 window.onload = function () {
-    zombies = new ZombiesUI();
-    zombies.init();
+    z= new ZombiesUI();
+    z.init();
 }
 
 function ZombiesUI() {
@@ -34,8 +45,8 @@ ZombiesUI.prototype = {
 
     init: function(){
         loadGrid('dat/js-grid.json', this.bind(function (dat) {
-            var usboard = new USAMapBoard(dat);
-            this.sim = new Simulation(usboard);
+            this.usboard = new USAMapBoard(dat);
+            this.sim = new Simulation(this.usboard);
             this.sim.alpha = 1.4;
             this.sim.mu = 1./(75*this.sim.alpha);
 
@@ -93,14 +104,14 @@ ZombiesUI.prototype = {
             }
             if (ev.keyCode == KEY_Q) {
                 ev.preventDefault();
-                this.init();
+                this.reset();
             }
         }), false);
 
 
         this.set_canvas_size();
 
-        this.check_control = new CheckBox("Show controls", 35, 20);
+        this.check_control = new CheckBox("Show controls", 15, 20);
         this.check_control.checked = this.showcontrols;
         this.check_control.handler = this.bind(function() {
             this.showcontrols = !this.showcontrols;
@@ -109,34 +120,44 @@ ZombiesUI.prototype = {
                 this.uielem[i].hidden = !this.showcontrols;
         });
 
-        var left = 20;
-        var width = 150;
+        var left = 2;
+        var sleft = left+40;
+        var width = 260;
+        var height = 460;
         var button_width = 100;
         var button_height = 30;
+        var topp = 70;
+        var container = new Container(left, topp-30, width, height);
         this.pauseButton = new Button("Pause (P)", left+width/2 - button_width/2,
-                185, button_width, button_height);
-        var resetButton = new Button("Reset (R)", left+width/2 - button_width/2,
-                225, button_width, button_height);
-        var slidera = new Slider("alpha", left+50, 90, 90, 0, 3);
-        var sliderm = new Slider("mu", left+50, 115, 90, 1, 500);
-        var sliders = new Slider("step/sec", left+50, 140, 90, 0, 2000);
-        this.pauseButton.handler = this.bind(function (){ this.playpause(); });
-        resetButton.handler = this.bind(function (){ this.init(); });
-        slidera.handler = this.bind(function (val){ this.sim.alpha = val; });
-        sliders.handler = this.bind(function (val){ this.stepsper = val; });
-        sliderm.handler = this.bind(function (val){ 
-            this.sim.mu =  1./(val*this.sim.alpha); 
-        });
-    
-        slidera.value = this.sim.alpha;
-        sliderm.value = 75;
-        sliders.value = this.stepsper;
+                topp+95, button_width, button_height);
+        this.resetButton = new Button("Reset (Q)", left+width/2 - button_width/2,
+                topp+135, button_width, button_height);
 
+        this.slider_alpha = new Slider("alpha", sleft+50, topp, 90, 0, 3);
+        this.slider_mu    = new Slider("mu", sleft+50, topp+25, 90, 1, 500);
+        this.slider_steps = new Slider("step/draw", sleft+50, topp+50, 90, 0, 2000);
+
+        this.pauseButton.handler = this.bind(function (){ this.playpause(); });
+        this.resetButton.handler = this.bind(function (){ this.reset(); });
+        this.slider_alpha.handler = this.bind(function (val){ this.sim.alpha = val; });
+        this.slider_steps.handler = this.bind(function (val){ this.stepsper = val; });
+        this.slider_mu.handler = this.bind(function (val){
+            this.sim.mu =  1./(val*this.sim.alpha);
+        });
+        var textbox = new TextBox(left+10, topp+180, width-10, height-topp-160, helptext, this.ctx);
+
+        this.slider_alpha.value = this.sim.alpha;
+        this.slider_mu.value = 75;
+        this.slider_steps.value = this.stepsper;
+
+        this.uielem = []
+        this.uielem.push(container);
+        this.uielem.push(textbox);
         this.uielem.push(this.pauseButton);
-        this.uielem.push(resetButton);
-        this.uielem.push(slidera);
-        this.uielem.push(sliderm);
-        this.uielem.push(sliders);
+        this.uielem.push(this.resetButton);
+        this.uielem.push(this.slider_alpha);
+        this.uielem.push(this.slider_steps);
+        this.uielem.push(this.slider_mu);
 
         for (var i=0; i<this.uielem.length; i++)
             this.uielem[i].hidden = !this.showcontrols;
@@ -145,9 +166,9 @@ ZombiesUI.prototype = {
         this.map.onload = (this.bind(
             function() {
                 this.ctxoff.drawImage(this.map, 0, 0 );
-                this.mapcopy = this.ctxoff.getImageData(0, 0, 
+                this.mapcopy = this.ctxoff.getImageData(0, 0,
                     this.map.width, this.map.height);
-                this.overlay = this.ctxoff.getImageData(0, 0, 
+                this.overlay = this.ctxoff.getImageData(0, 0,
                     this.map.width, this.map.height);
                 this.draw();
             }));
@@ -160,6 +181,20 @@ ZombiesUI.prototype = {
             this.pauseButton.text = "Pause (P)";
         else
             this.pauseButton.text = "Play (P)";
+    },
+
+    reset: function(){
+        this.sim = new Simulation(this.usboard);
+        this.sim.alpha = this.slider_alpha.value;
+        this.sim.mu = 1./(this.slider_mu.value*this.sim.alpha);
+
+        this.ctxoff.drawImage(this.map, 0, 0 );
+        this.mapcopy = this.ctxoff.getImageData(0, 0,
+                    this.map.width, this.map.height);
+        this.overlay = this.ctxoff.getImageData(0, 0,
+                    this.map.width, this.map.height);
+
+        if (!this.play) this.playpause();
     },
 
     set_canvas_size: function(){
@@ -192,12 +227,14 @@ ZombiesUI.prototype = {
         if (sim){
             this.ctx.font = '24px sans-serif';
             this.ctx.fillStyle='rgba(255,255,255,0.8)';
-            this.ctx.fillText(toFixed(sim.time*2,4) + " hours", 30, 60);
-            //this.ctx.fillText(toFixed(sim.fps,4), 20, 80);
+            var txt = "Time since infection: "+toFixed(this.sim.time*2, 4)+" hours";
+            var size = this.ctx.measureText(txt).width;
+            this.ctx.fillText(txt, this.canvas.width/2 - size/2, 40);
         }
     },
 
     draw: function() {
+        this.update_ui();
         if (this.play){
             var steps = this.stepsper;
             var tstart = window.performance.now();
@@ -216,26 +253,28 @@ ZombiesUI.prototype = {
                 var y = this.ctx.mouse.y;
                 x = Math.floor((x - (this.W-this.mapW)/2)*this.mapWmax/this.mapW);
                 y = Math.floor(this.mapHmax - (y - (this.H-this.mapH)/2)*this.mapHmax/this.mapH);
-                if (x > 0 && x < this.mapWmax && y > 0 && y < this.mapHmax)
+
+                var hover = false;
+                for (var i=0; i<this.uielem.length; i++) if (this.uielem[i].hovered == true) hover = true;
+                if (x > 0 && x < this.mapWmax && y > 0 && y < this.mapHmax && !hover)
                     this.sim.addZombieSeed(x, y);
             }
 
         }
         this.clear();
-        this.draw_timing(this.sim);
         this.draw_map();
         this.draw_overlay();
-        this.update_ui();
         this.draw_ui();
+        this.draw_timing(this.sim);
         registerAnimationRequest(this.bind(function(){this.draw()}));
     },
-    
+
     update_ui: function(){
         this.check_control.update(this.ctx);
         for (var i=0; i<this.uielem.length; i++)
             this.uielem[i].update(this.ctx);
     },
-    
+
     draw_ui: function(){
         this.check_control.draw(this.ctx);
         for (var i=0; i<this.uielem.length; i++)
@@ -256,6 +295,6 @@ ZombiesUI.prototype = {
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 window.registerAnimationRequest = window.webkitRequestAnimationFrame ||
     window.mozRequestAnimationFrame ||  window.oRequestAnimationFrame ||
-    window.msRequestAnimationFrame || 
+    window.msRequestAnimationFrame ||
     function(callback) { window.setTimeout( callback, 32); };
 

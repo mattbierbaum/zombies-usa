@@ -20,7 +20,7 @@ var UIObject = {
 
         if (!canvas.mouse.down) {
             this.clicked = false;
-        }               
+        }
     },
 
     gray: 'rgba(125,125,125,0.7)',
@@ -55,7 +55,7 @@ Button.prototype.update = function(canvas) {
 
 Button.prototype.draw = function(canvas) {
     if (this.hidden) return;
-    
+
     if (this.hovered) {
         canvas.fillStyle = this.red;
     } else {
@@ -214,4 +214,84 @@ CheckBox.prototype.draw = function(canvas) {
     canvas.fillText(this.label, textX, textY);
 }
 
+var Container = function(x, y, width, height){
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.color = 'rgba(125,125,125,0.2)';
+    this.colorborder = 'rgba(225,225,225,0.4)';
+    this.hidden = false;
+}
+
+Container.prototype = _.extend(Container.prototype, UIObject);
+Container.prototype.update = function(canvas){}
+Container.prototype.draw = function(canvas){
+    if (this.hidden) return;
+    canvas.fillStyle = this.color;
+    canvas.fillRect(this.x, this.y, this.width, this.height);
+
+    canvas.strokeStyle = this.colorborder;
+    canvas.setLineWidth(2);
+    canvas.strokeRect(this.x, this.y, this.width, this.height);
+}
+
+var TextBox = function(x, y, width, height, txt, ctx){
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.color = 'rgba(225,225,225,0.8)';
+    this.hidden = false;
+    this.fontsize = 13;
+
+    this.setText(txt, ctx);
+}
+
+TextBox.prototype = _.extend(TextBox.prototype, UIObject);
+TextBox.prototype.update = function(canvas){}
+
+TextBox.prototype.setText = function(txt, ctx){
+    ctx.font = this.fontsize + "px sans-serif";
+
+    this.text = txt;
+    var paragraphs = this.text.split('\n');
+    this.pars = [];
+    for (var i in paragraphs){
+        var par = paragraphs[i];
+        var group = [];
+        var words = par.split(' ');
+        while (words.length > 0){
+            var temp = "";
+            var i;
+            for (i=0; i<words.length; i++){
+                var test = temp + words[i] + " ";
+                if (ctx.measureText(test).width > this.width){
+                    i--; break;
+                }
+                temp = test;
+            }
+            group.push(temp);
+            words.splice(0, i+1);
+        }
+        this.pars.push(group);
+    }
+}
+
+TextBox.prototype.draw = function(canvas){
+    if (this.hidden) return;
+
+    canvas.setFillColor(1, 1, 1, 1.0);
+    canvas.font = this.fontsize + "px sans-serif";
+
+    var h = this.fontsize/(1*2);
+    var here = this.y + h;
+    for (var i=0; i<this.pars.length; i++){
+        var par = this.pars[i];
+        for (var j=0; j<par.length; j++){
+            canvas.fillText(par[j], this.x, here);
+            here += 2*h;
+        }
+    }
+}
 
