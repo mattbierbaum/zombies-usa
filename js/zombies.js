@@ -3,8 +3,8 @@ Welcome to Zombietown USA, a disease dynamics simulation of zombism across the U
 We use Gillespie dynamics on block-level census data from 2010 using 308 \
 million people interacting across the continental US.\n\n\
 Parameters:\n\n\
-alpha - bite to kill ratio\n\
-mu - inter-cell propogation speed\n\n\
+\u03B1 - bite to kill ratio\n\
+\u03BC - inter-cell propogation speed\n\n\
 Controls:\n\n\
 Click on the map to place a new zombie, and use the controls on the left to \
 change parameters of the simulation. ";
@@ -133,8 +133,8 @@ ZombiesUI.prototype = {
         this.resetButton = new Button("Reset (Q)", left+width/2 - button_width/2,
                 topp+135, button_width, button_height);
 
-        this.slider_alpha = new Slider("alpha", sleft+50, topp, 90, 0, 3);
-        this.slider_mu    = new Slider("mu", sleft+50, topp+25, 90, 1, 500);
+        this.slider_alpha = new Slider("\u03B1", sleft+50, topp, 90, 0, 3);
+        this.slider_mu    = new Slider("\u03BC", sleft+50, topp+25, 90, 1, 500);
         this.slider_steps = new Slider("step/draw", sleft+50, topp+50, 90, 0, 2000);
 
         this.pauseButton.handler = this.bind(function (){ this.playpause(); });
