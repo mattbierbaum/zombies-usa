@@ -241,7 +241,7 @@ ZombiesUI.prototype = {
         this.update_ui();
         if (this.play){
             var steps = this.stepsper;
-            var tstart = window.performance.now();
+            //var tstart = window.performance.now();
 
             for (var t=0; t<steps; t++){
                 var site = this.sim.dostep();
@@ -249,8 +249,8 @@ ZombiesUI.prototype = {
                 this.modify_site(site);
             }
 
-            var tend = window.performance.now();
-            this.sim.fps = steps/(tend-tstart);
+            //var tend = window.performance.now();
+            //this.sim.fps = steps/(tend-tstart);
 
             if (this.ctx.mouse.down){
                 var x = this.ctx.mouse.x;
