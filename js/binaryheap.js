@@ -1,5 +1,3 @@
-// from: http://eloquentjavascript.net/appendix2.html
-
 function score_int(a) { return a; }
 function score_loc(a) { return a; }
 
@@ -49,8 +47,8 @@ BinaryHeap.prototype = {
         if (ind != this.last()){
             this.swap(ind, this.last());
             this.delete_end();
-            this.upHeap(ind);
-            this.downHeap(ind);
+            if (!this.upHeap(ind))
+                this.downHeap(ind);
         } else {
             this.delete_end();
         }
@@ -71,6 +69,7 @@ BinaryHeap.prototype = {
     },
 
     upHeap: function(n) {
+        var did = false;
         while (true){
             var score = this.score(this.heap[n]);
             if (n > 0){
@@ -80,8 +79,10 @@ BinaryHeap.prototype = {
                     break;
                 this.swap(n, up);
                 n = up;
+                did = true;
             } else break;
         }
+        return did;
     },
 
     downHeap: function(n) {

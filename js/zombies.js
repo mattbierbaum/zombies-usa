@@ -234,23 +234,25 @@ ZombiesUI.prototype = {
             var txt = "Time since infection: "+toFixed(this.sim.time*2, 4)+" hours";
             var size = this.ctx.measureText(txt).width;
             this.ctx.fillText(txt, this.canvas.width/2 - size/2, 40);
+
+            txt = "FPS: "+toFixed(this.sim.fps, 1);
+            this.ctx.fillText(txt, this.canvas.width/2 - size/2, 80);
         }
     },
 
     draw: function() {
         this.update_ui();
         if (this.play){
-            var steps = this.stepsper;
-            //var tstart = window.performance.now();
+            var tstart = window.performance.now();
 
-            for (var t=0; t<steps; t++){
+            for (var t=0; t<this.stepsper; t++){
                 var site = this.sim.dostep();
                 if (!site) break;
                 this.modify_site(site);
             }
 
-            //var tend = window.performance.now();
-            //this.sim.fps = steps/(tend-tstart);
+            var tend = window.performance.now();
+            this.sim.fps = this.stepsper/(tend-tstart);
 
             if (this.ctx.mouse.down){
                 var x = this.ctx.mouse.x;
