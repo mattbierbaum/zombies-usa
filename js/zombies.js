@@ -47,7 +47,7 @@ ZombiesUI.prototype = {
         loadGrid('dat/js-grid.json', this.bind(function (dat) {
             this.usboard = new USAMapBoard(dat);
             this.sim = new Simulation(this.usboard);
-            this.sim.alpha = 1.4;
+            this.sim.alpha = 0.8;
             this.sim.mu = 1./(75*this.sim.alpha);
 
             this.init_gui();
@@ -190,7 +190,7 @@ ZombiesUI.prototype = {
     reset: function(){
         this.sim = new Simulation(this.usboard);
         this.sim.alpha = this.slider_alpha.value;
-        this.sim.mu = 1./(this.slider_mu.value*this.sim.alpha);
+        this.sim.mu = this.slider_mu.value;
 
         this.ctxoff.drawImage(this.map, 0, 0 );
         this.mapcopy = this.ctxoff.getImageData(0, 0,
@@ -246,9 +246,13 @@ ZombiesUI.prototype = {
             var tstart = window.performance.now();
 
             for (var t=0; t<this.stepsper; t++){
-                var site = this.sim.dostep();
-                if (!site) break;
-                this.modify_site(site);
+                var sites = this.sim.dostep();
+
+                if (!sites) break;
+
+                ll = sites.length;
+                for (var i=0; i<ll; i++)
+                    this.modify_site(sites[i]);
             }
 
             var tend = window.performance.now();
@@ -263,7 +267,7 @@ ZombiesUI.prototype = {
                 var hover = false;
                 for (var i=0; i<this.uielem.length; i++) if (this.uielem[i].hovered == true) hover = true;
                 if (x > 0 && x < this.mapWmax && y > 0 && y < this.mapHmax && !hover)
-                    this.sim.addZombieSeed(x, y);
+                    this.sim.addZombieSeed(x, y, S2Z);
             }
 
         }
