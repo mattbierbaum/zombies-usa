@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/binaryheap.js?v=0"></script>
+    <script src="js/simulation.js?v=0"></script>
+    <script src="js/graph.js?v=0"></script>
+  </head>
+  <!-- <body style="background-color: black;"> -->
+  <body>
+    <div id="sdata" style="display: inline-block;"></div>
+    <div id="zdata" style="display: inline-block;"></div>
+    <div id="rdata" style="display: inline-block;"></div>
+    <div id="graph" style="display: inline-block;"></div>
+
+<script type="text/javascript">
+var width = 600;
+var height = 600;
+var bx = [0,1];
+var by = [0,1];
+
+var svg = d3.select("#sdata")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var cells = svg.selectAll('rect');
+
+cells.enter().append('rect')
+    .attr("x", function(d) {return d.x});
+    .attr("y", function(d) {return d.x});
+    .attr("width", function(d) {return d.x});
+    .attr("height", function(d) {return d.x});
+            
+function fill(d) {
+    return d3.rgb( 255*d/maxPop, 0, 0);
+}
+
+function full_d3(state, pk, fillfunc) {
+    rows = svgs[pk].selectAll("g").data(state);
+
+    // update
+    rows.selectAll("rect").data(function(d){ return d })
+        //.transition().duration(100)
+        .attr("fill", fillfunc);
+
+    // new
+    rows.enter().append("g")
+        .selectAll("g")
+        .data(function(d){ return d })
+        .enter()
+        .append("rect")
+        .attr("x", function(d,i,j) {
+                return w*i;
+                })
+    .attr("y", function(d,i,j) {
+            return h*j;
+            })
+    .attr("height", h)
+        .attr("width", w)
+        .attr("id", function(d,i,j) {
+                return "b" + pk + "_" + i+"_"+j;
+                })
+    .attr("fill", fillfunc)
+        .attr("stroke","black")
+        .attr("stroke-width",0.1);
+
+    svgs[pk].attr("height", h*state.length);
+    svgs[pk].attr("width", w*state[0].length);
+}
+
+
+function update_d3(state, pk, sites, fillfunc) {
+    var l = sites.length;
+    for (var i=0; i<l; i++) {
+        var site = sites[i];
+        var a = site.y;
+        var b = site.x;
+        var d = state[a][b];
+        svgs[pk].select("#b" + pk + "_" + b + "_" + a)
+            .datum(state[a][b])
+            //.transition().duration(100)
+            .attr("fill", fillfunc)
+    }
+}
+
+var dat = new Array(N);
+var maxPop = 0;
+for (var i=0; i<N; i++) {
+    dat[i] = new Array(N);
+    for (var j=0; j<N; j++) {
+        dat[i][j] = 1;
+        if (dat[i][j] > maxPop) maxPop = dat[i][j];
+    }
+}
+
+var board = new SquareBoard(dat);
+var sim = new Simulation(board);
+sim.alpha = 0.4;
+sim.mu = 1.0;
+sim.static_types = [S2Z, I2R];
+sim.motion_types = [S2Z];
+sim.addZombieSeed(N/2,N/2,S2Z);
+
+graph.ylim(0, 1.04*sim.N);
+
+var state = new Array(3);
+for (var k=0; k<3; k++) {
+    state[k] = new Array(N);
+    for (var i=0; i<N; i++) {
+        state[k][i] = new Array(N);
+        for (var j=0; j<N; j++) {
+            state[k][i][j] = 0;
+            state[0][i][j] = dat[i][j];
+        }
+    }
+}
+full_d3(state[0],0,sfill);
+full_d3(state[1],1,zfill);
+full_d3(state[2],2,rfill);
+
+function modify_sites(sites) {
+    var l = sites.length;
+    for (var k=0; k<l; k++) {
+        var site = sites[k];
+        var i = site.y;
+        var j = site.x;
+        state[0][i][j] = site.S;
+        state[1][i][j] = site.Z;
+        state[2][i][j] = site.R;
+    }
+}
+
+function dostep() {
+    var next_time = sim.time + 0.01;
+    var update_sites = [];
+    while (sim.time < next_time) {
+        //for (var k=0; k<30; k++) {
+        var sites = sim.dostep();
+        if (!sites) {
+            window.clearInterval(intID);
+            return;
+        }
+        modify_sites(sites);
+        update_sites = update_sites.concat(sites);
+    }
+
+    T += 1;
+    update_d3(state[0],0,update_sites,sfill);
+    update_d3(state[1],1,update_sites,zfill);
+    update_d3(state[2],2,update_sites,rfill);
+    update_graphs(sim);
+}
+
+function totalpop() {
+    var tot = 0;
+    for (var k=0; k<3; k++) {
+        for (var i=0; i<N; i++) {
+            for (var j=0; j<N; j++) {
+                tot += state[k][i][j];
+            }
+        }
+    }
+    return tot;
+}
+
+for (var t=0; t<20; t++)
+dostep();
+var intID = setInterval(dostep,2);
+</script>
+  </body>
+</html>

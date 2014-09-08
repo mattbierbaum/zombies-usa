@@ -4,6 +4,7 @@
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="js/binaryheap.js?v=0"></script>
     <script src="js/simulation.js?v=0"></script>
+    <script src="js/graph.js?v=0"></script>
   </head>
   <!-- <body style="background-color: black;"> -->
   <body>
@@ -11,318 +12,169 @@
     <div id="zdata" style="display: inline-block;"></div>
     <div id="rdata" style="display: inline-block;"></div>
     <div id="graph" style="display: inline-block;"></div>
-    <style>
-    .sline {
-        fill: none;
-        stroke: blue;
-        stroke-width: 1.2px;
-    }
-    .zline {
-        fill: none;
-        stroke: red;
-        stroke-width: 1.2px;
-    }
-    .rline {
-        fill: none;
-        stroke: black;
-        stroke-width: 1.2px;
-    }
-
-    .axis path,
-    .axis line {
-        fill: none;
-        stroke: #000;
-        shape-rendering: crispEdges;
-    }
-    </style>
     <script type="text/javascript">
-      var N = 30;
-      var T = 0;
+        var N = 100;
+        var T = 0;
 
-      var svt = new Array();
-      var zvt = new Array();
-      var rvt = new Array();
-      var width=300;
-      var height=300;
-      var svg0 = d3.select("#sdata")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-      var svg1 = d3.select("#zdata")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-      var svg2 = d3.select("#rdata")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-      var svgg = d3.select("#graph")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .append("g")
-        .attr("transform", "translate("+60+","+0+")");
+        var alphas = new Array();
 
-      var xs = d3.scale.linear()
-        .domain([0, 10])
-        .range([0, width-60]);
-      var ys = d3.scale.linear()
-        .domain([0, N])
-        .range([height-20, 0]);
+        var curves = new Array();
+        var graph = new LineGraph("#graph", height, width);
+        function update_graphs(si){
+            graph.xlim(0, sim.time);
+            graph.update();
+        }
 
-      var sline = d3.svg.line()
-        .x(function(d) {return xs(d[0]);})
-        .y(function(d) {return ys(d[1]);})
-        .interpolate('step-after');
-      var zline = d3.svg.line()
-        .x(function(d) {return xs(d[0]);})
-        .y(function(d) {return ys(d[1]);})
-        .interpolate('step-after');
-      var rline = d3.svg.line()
-        .x(function(d) {return xs(d[0]);})
-        .y(function(d) {return ys(d[1]);})
-        .interpolate('step-after');
+        var width = 400;
+        var height = 400;
+        var svg0 = d3.select("#sdata")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+        var svg1 = d3.select("#zdata")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+        var svg2 = d3.select("#rdata")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
 
-      svgg.append("defs").append("clipPath")
-        .attr("id", "clip")
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height);
+        var svgs = [svg0, svg1, svg2];
 
-      var xaxis = d3.svg.axis().scale(xs).orient('bottom');
-      var yaxis = d3.svg.axis().scale(ys).orient('left');
+        var h = 4;
+        var w = h;
+        var ramp = d3.scale.linear().domain([0,0.5,1]).range(["#ece7f2","#a6bddb", "#2b8cbe"]);
 
-      svgg.append("g")
-        .attr('id', 'xAxis')
-        .attr("class", "x axis")
-        .attr("transform", "translate(0,"+ys(0)+")")
-        .call(xaxis);
+        function zfill(d) {
+            return d3.rgb( 255*d/maxPop, 0, 0);
+        }
+        function sfill(d) {
+            var x = 255*d/maxPop;
+            return d3.rgb( x,x,x);
+        }
+        function rfill(d) {
+            return d3.rgb( 0, 255*d/maxPop, 0);
+        }
 
-      svgg.append("g")
-        .attr('id', 'yAxis')
-        .attr("class", "y axis")
-        .call(yaxis);
+        function full_d3(state, pk, fillfunc) {
+            rows = svgs[pk].selectAll("g").data(state);
 
-      var spath = svgg.append("g")
-        .attr("clip-path", "url(#clip)")
-        .append("path")
-        .datum(svt)
-        .attr("class", "sline")
-        .attr("d", sline);
-      var zpath = svgg.append("g")
-        .attr("clip-path", "url(#clip)")
-        .append("path")
-        .datum(zvt)
-        .attr("class", "zline")
-        .attr("d", zline);
-      var rpath = svgg.append("g")
-        .attr("clip-path", "url(#clip)")
-        .append("path")
-        .datum(rvt)
-        .attr("class", "rline")
-        .attr("d", rline);
+            // update
+            rows.selectAll("rect").data(function(d){ return d })
+                //.transition().duration(100)
+                .attr("fill", fillfunc)
 
-      var svgs = [svg0, svg1, svg2];
-
-      var h = 10;
-      var w = h;
-      var ramp = d3.scale.linear().domain([0,0.5,1]).range(["#ece7f2","#a6bddb", "#2b8cbe"]);
-
-      function zfill(d) {
-        return d3.rgb( 255*d/maxPop, 0, 0);
-      }
-      function sfill(d) {
-        var x = 255*d/maxPop;
-        return d3.rgb( x,x,x);
-      }
-      function rfill(d) {
-        return d3.rgb( 0, 255*d/maxPop, 0);
-      }
-
-      function full_d3(state, pk, fillfunc) {
-          rows = svgs[pk].selectAll("g").data(state)
-
-          // update
-          rows.selectAll("rect").data(function(d){ return d })
-            //.transition().duration(100)
-            .attr("fill", fillfunc)
-           
-          // new
-          rows.enter().append("g")
-            .selectAll("g")
-            .data(function(d){ return d })
-            .enter()
-            .append("rect")
-            .attr("x", function(d,i,j) {
-                return w*i;
-            })
-            .attr("y", function(d,i,j) {
-                return h*j;
-            })
-            .attr("height", h)
-            .attr("width", w)
-            .attr("id", function(d,i,j) {
-                return "b" + pk + "_" + i+"_"+j;
-            })
-            .attr("fill", fillfunc)
-            .attr("stroke","black")
-            .attr("stroke-width",0.1);
-          
-          svgs[pk].attr("height", h*state.length);
-          svgs[pk].attr("width", w*state[0].length);
-      }
-
-      function update_graphs(si){
-          svt.push([si.time, si.S]); 
-          zvt.push([si.time, si.Z]); 
-          rvt.push([si.time, si.R]); 
-          tick();
-      }
-      
-      function tick(){
-          xs.domain([0, svt[svt.length-1][0]]);
-          d3.select('#xAxis')
-              .call(makeXAxis);
-      
-          spath.attr("d", sline)
-              .attr("transform", null)
-              .transition()
-              .duration(10)
-              .ease('linear');
-          zpath.attr("d", zline)
-              .attr("transform", null)
-              .transition()
-              .duration(10)
-              .ease('linear');
-          rpath.attr("d", rline)
-              .attr("transform", null)
-              .transition()
-              .duration(10)
-              .ease('linear');
-      }
-
-      function update_d3(state, pk, sites, fillfunc) {
-          var l = sites.length;
-          for (var i=0; i<l; i++) {
-            var site = sites[i];
-            var a = site.y;
-            var b = site.x;
-            var d = state[a][b];
-            svgs[pk].select("#b" + pk + "_" + b + "_" + a)
-              .datum(state[a][b])
-              //.transition().duration(100)
+            // new
+            rows.enter().append("g")
+              .selectAll("g")
+              .data(function(d){ return d })
+              .enter()
+              .append("rect")
+              .attr("x", function(d,i,j) {
+                  return w*i;
+              })
+              .attr("y", function(d,i,j) {
+                  return h*j;
+              })
+              .attr("height", h)
+              .attr("width", w)
+              .attr("id", function(d,i,j) {
+                  return "b" + pk + "_" + i+"_"+j;
+              })
               .attr("fill", fillfunc)
-          }
-      }
+              .attr("stroke","black")
+              .attr("stroke-width",0.1);
+
+            svgs[pk].attr("height", h*state.length);
+            svgs[pk].attr("width", w*state[0].length);
+        }
+
+        function update_d3(state, pk, sites, fillfunc) {
+            var l = sites.length;
+            for (var i=0; i<l; i++) {
+              var site = sites[i];
+              var a = site.y;
+              var b = site.x;
+              var d = state[a][b];
+              svgs[pk].select("#b" + pk + "_" + b + "_" + a)
+                .datum(state[a][b])
+                //.transition().duration(100)
+                .attr("fill", fillfunc)
+            }
+        }
     </script>
 
     <script type="text/javascript">
-     function makeXAxis(s) {
-       s.call(d3.svg.axis()
-           .scale(xs)
-           .orient("bottom"));
-     }
-     function makeYAxis(s) {
-       s.call(d3.svg.axis()
-           .scale(ys)
-           .orient("left"));
-     }
-
-      var dat = new Array(N);
-      var maxPop = 0;
-      for (var i=0; i<N; i++) {
-        dat[i] = new Array(N);
-        for (var j=0; j<N; j++) {
-            dat[i][j] = 5;
-    //(Math.floor(10*(1+(Math.sin( Math.PI*5*i/N)+1.3)*(Math.cos( Math.PI*4*j/N)+1)))+1)/4;
-          if (dat[i][j] > maxPop) maxPop = dat[i][j];
-        }
-      }
-
-      var board = new SquareBoard(dat);
-      var sim = new Simulation(board);
-      sim.alpha = 0.4; //1.4;
-      //sim.alpha = 0.2; //1.4;
-      sim.mu = 1.0;
-      sim.static_types = [S2Z, I2R];
-      //sim.motion_types = [MOV];
-      //sim.motion_types = [S2Z, Z2R];
-      sim.motion_types = [S2Z];
-      sim.addZombieSeed(N/2,N/2,S2Z);
-
-      ys.domain([0, 1.05*sim.N]);
-      d3.select('#yAxis')
-        .transition()
-        .call(makeYAxis);
-      d3.select('#xAxis')
-        .transition()
-        .call(makeXAxis);
-
-      var state = new Array(3);
-      for (var k=0; k<3; k++) {
-        state[k] = new Array(N);
+        var N0 = 1
+        var dat = new Array(N);
+        var maxPop = N0;
         for (var i=0; i<N; i++) {
-          state[k][i] = new Array(N);
-          for (var j=0; j<N; j++) {
-            state[k][i][j] = 0;
-            state[0][i][j] = dat[i][j];
-          }
-        }
-      }
-      full_d3(state[0],0,sfill);
-      full_d3(state[1],1,zfill);
-      full_d3(state[2],2,rfill);
-      
-      function modify_sites(sites) {
-        var l = sites.length;
-        for (var k=0; k<l; k++) {
-          var site = sites[k];
-          var i = site.y;
-          var j = site.x;
-          state[0][i][j] = site.S;
-          state[1][i][j] = site.Z;
-          state[2][i][j] = site.R;
-        }
-      }
-
-      function dostep() {
-        var next_time = sim.time + 0.01;
-        var update_sites = [];
-         while (sim.time < next_time) {
-         //for (var k=0; k<30; k++) {
-           var sites = sim.dostep();
-           if (!sites) {
-             window.clearInterval(intID);
-             return;
-           }
-           modify_sites(sites);
-           update_sites = update_sites.concat(sites);
-         }
-
-         T += 1;
-          update_d3(state[0],0,update_sites,sfill);
-          update_d3(state[1],1,update_sites,zfill);
-          update_d3(state[2],2,update_sites,rfill);
-          update_graphs(sim);
-      }
-
-      function totalpop() {
-        var tot = 0;
-        for (var k=0; k<3; k++) {
-          for (var i=0; i<N; i++) {
+            dat[i] = new Array(N);
             for (var j=0; j<N; j++) {
-              tot += state[k][i][j];
+                dat[i][j] = N0;
             }
-          }
         }
-        return tot;
-      }
 
-      //var intID;
-      for (var t=0; t<20; t++)
-          dostep();
-      var intID = setInterval(dostep,2);  
-      //setInterval(function () { console.log(totalpop()); },3000);  
+        var board = new SquareBoard(dat);
+        var sim = new Simulation(board);
+        sim.alpha = 0.45;
+        sim.mu = 1.0;
+        sim.static_types = [S2Z, Z2R];
+        sim.motion_types = [S2Z, Z2R];
+        sim.addZombieSeed(N/2,N/2,S2Z);
+
+        var state = new Array(3);
+        for (var k=0; k<3; k++) {
+            state[k] = new Array(N);
+            for (var i=0; i<N; i++) {
+                state[k][i] = new Array(N);
+                for (var j=0; j<N; j++) {
+                    state[k][i][j] = 0;
+                    state[0][i][j] = dat[i][j];
+                }
+            }
+        }
+        full_d3(state[0],0,sfill);
+        full_d3(state[1],1,zfill);
+        full_d3(state[2],2,rfill);
+
+        function modify_sites(sites) {
+            var l = sites.length;
+            for (var k=0; k<l; k++) {
+                var site = sites[k];
+                var i = site.y;
+                var j = site.x;
+                state[0][i][j] = site.S;
+                state[1][i][j] = site.Z;
+                state[2][i][j] = site.R;
+            }
+        }
+
+        function dostep() {
+            var next_time = sim.time;// + 0.11;
+            var update_sites = [];
+            while (sim.time <= next_time) {
+                //for (var k=0; k<30; k++) {
+                var sites = sim.dostep();
+                if (!sites) {
+                    window.clearInterval(intID);
+                    return;
+                }
+                modify_sites(sites);
+                update_sites = update_sites.concat(sites);
+            }
+
+            T += 1;
+            update_d3(state[0],0,update_sites,sfill);
+            update_d3(state[1],1,update_sites,zfill);
+            update_d3(state[2],2,update_sites,rfill);
+        }
+
+        //var intID;
+        for (var t=0; t<20; t++)
+            dostep();
+        var intID = setInterval(dostep,2);
     </script>
 
 
