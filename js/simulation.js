@@ -3,19 +3,25 @@ var Z2R = "K";
 var I2R = "R";
 var MOV = "M";
 
-function inc_z(s) {
+function inc_z(s, sim) {
     s.Z = s.Z + 1;
     s.N = s.N + 1;
+    sim.Z += 1;
+    sim.N += 1;
 }
-function dec_z(s) {
+function dec_z(s, sim) {
     s.Z = s.Z - 1;
     s.N = s.N - 1;
+    sim.Z -= 1;
+    sim.N -= 1;
 }
-function bite(s){
+function bite(s, sim){
     s.S = s.S - 1; s.Z = s.Z + 1;
+    sim.S -= 1; sim.Z += 1;
 }
-function kill(s){
+function kill(s, sim){
     s.Z = s.Z - 1; s.R = s.R + 1;
+    sim.Z -= 1; sim.R += 1;
 }
 function move(s0, s1) {
     s0.Z = s0.Z - 1;
@@ -42,6 +48,16 @@ USAMapBoard.prototype = {
         for (var j=Math.max(y-1, 0); j<=Math.min(y+1, this.ymax-1); j+=2)
             sites.push({'x': x, 'y': j});
         return sites;
+    },
+
+    get_total: function(){
+        var tot = 0;
+        for (var i=0; i<this.ymax; i++){
+            for (var j=0; j<this.xmax; j++){
+                tot += this.pop(j, i);
+            }
+        }
+        return tot;
     }
 }
 
@@ -66,6 +82,15 @@ SquareBoard.prototype = {
         sites.push({'x': x, 'y': (y-1).mod(this.ymax)});
         sites.push({'x': x, 'y': (y+1).mod(this.ymax)});
         return sites;
+    },
+    get_total: function(){
+        var tot = 0;
+        for (var i=0; i<this.ymax; i++){
+            for (var j=0; j<this.xmax; j++){
+                tot += this.pop(j, i);
+            }
+        }
+        return tot;
     }
 }
 
@@ -107,6 +132,10 @@ function Simulation(board){
     this.motion_types = [S2Z, Z2R];
     this.heap = new BinaryHeap(tauGetter, hashGetter);
     this.board = board;
+
+    tot = board.get_total();
+    this.S = tot; this.N = tot;
+    this.Z = 0; this.R = 0;
 }
 
 Simulation.prototype = {
@@ -171,8 +200,8 @@ Simulation.prototype = {
         s0 = this.get_site(x,y);
         if (s0.N <= 0 || s0.Z > 0) return 0;
 
-        if (type == S2Z) bite(s0);
-        if (type == MOV) inc_z(s0);
+        if (type == S2Z) bite(s0, this);
+        if (type == MOV) inc_z(s0, this);
 
         var neighs = this.board.neigh(x,y);
         var lneighs = neighs.length;
@@ -210,17 +239,17 @@ Simulation.prototype = {
             if (site.Z == 0)
                 this.addZombieSeed(site.x, site.y, bond.type);
             else
-                bite(site);
+                bite(site, this);
         }
         if (bond.type == Z2R)
-            kill(site);
+            kill(site, this);
         if (bond.type == I2R)
-            kill(site);
+            kill(site, this);
         if (bond.type == MOV){
             if (site2.Z == 0){
-                dec_z(site);
+                dec_z(site, this);
                 if (!this.addZombieSeed(site2.x, site2.y, bond.type))
-                    inc_z(site);
+                    inc_z(site, this);
             }
             else
                 move(site, site2);
