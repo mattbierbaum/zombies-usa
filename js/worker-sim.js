@@ -15,7 +15,7 @@ function launch(alpha, mu, szr){
     sim.alpha = alpha;
     sim.mu = mu;
 
-    if (szr){
+    if (szr == true){
         sim.static_types = [S2Z, Z2R];
         sim.motion_types = [S2Z, Z2R];
     } else {
@@ -53,7 +53,7 @@ self.addEventListener('message', function(e) {
     if (e.data['cmd'] == 'run'){
         var alpha = e.data['alpha'];
         var mu = e.data['mu'];
-        var szr = e.data['zombies'];
+        var szr = e.data['szr'];
         launch(alpha, mu, szr);
     }
     if (e.data['cmd'] == 'stop')
