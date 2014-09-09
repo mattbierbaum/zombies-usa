@@ -17,7 +17,7 @@
     <div id="data"></div>
 
 <script type="text/javascript">
-var board, sim, graph; 
+var board, sim, graph, alpha=0.439; 
 
 function init(){
     var width = window.innerHeight < window.innerWidth ?
@@ -70,13 +70,19 @@ function reset(){
 
     sim.static_types = [S2Z, Z2R];
     sim.motion_types = [S2Z, Z2R];
-    sim.alpha = 0.436;
+    sim.alpha = alpha;
 
     //sim.static_types = [S2Z, I2R];
     //sim.motion_types = [S2Z];
     //sim.alpha = 0.836;
 
     graph.reset_display();
+}
+
+function change_alpha(slider){
+    alpha = slider.value;
+    document.getElementById('label').innerHTML = ""+alpha;
+    if (sim) sim.alpha = alpha;
 }
 
 init();
@@ -86,5 +92,7 @@ reset();
 <br/>
 <input type='button' value='go' style='top: 0; left: 0; position: absolute;' onclick='launch();'/>
 <input type='button' value='stop' style='top: 0; left: 35px; position: absolute;' onclick='stop();'/>
+<input type='range' name='alpha' style='top: 2px; left: 82px; position: absolute;' min=0.001 max=2 step=0.001 value=0.439 oninput='change_alpha(this)' onchange='change_alpha(this);'/>
+<span id='label' style='top: 5px; left: 220px; position: absolute;'>0.439</span>
   </body>
 </html>

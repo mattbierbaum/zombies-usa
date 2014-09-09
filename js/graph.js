@@ -1,4 +1,4 @@
-function LineGraph(elem, width, height){
+function LineGraph(elem, width, height, dolog){
     this.width = width;
     this.height = height;
     this.elem = elem;
@@ -10,12 +10,21 @@ function LineGraph(elem, width, height){
         .append("g")
         .attr("transform", "translate("+60+","+0+")");
 
-    this.xs = d3.scale.linear()
-        .domain([0, 1])
-        .range([0, width-60]);
-    this.ys = d3.scale.linear()
-        .domain([0, 1])
-        .range([height-20, 0]);
+    if (dolog){
+        this.xs = d3.scale.log()
+            .domain([0.01, 1])
+            .range([0, width-60]);
+        this.ys = d3.scale.log()
+            .domain([0.01, 1])
+            .range([height-20, 0]);
+    } else {
+        this.xs = d3.scale.linear()
+            .domain([0, 1])
+            .range([0, width-60]);
+        this.ys = d3.scale.linear()
+            .domain([0, 1])
+            .range([height-20, 0]);
+    }
 
     this.lines = [];
     this.paths = [];

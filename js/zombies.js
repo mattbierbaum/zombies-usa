@@ -235,8 +235,8 @@ ZombiesUI.prototype = {
             var size = this.ctx.measureText(txt).width;
             this.ctx.fillText(txt, this.canvas.width/2 - size/2, 40);
 
-            txt = "FPS: "+toFixed(this.sim.fps, 1);
-            this.ctx.fillText(txt, this.canvas.width/2 - size/2, 80);
+            //txt = "FPS: "+toFixed(this.sim.fps, 1);
+            //this.ctx.fillText(txt, this.canvas.width/2 - size/2, 80);
         }
     },
 
