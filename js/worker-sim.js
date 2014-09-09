@@ -12,8 +12,8 @@ function launch(alpha, mu, szr){
 
     board = new InfiniteBoard(1);
     sim = new Simulation(board);
-    sim.alpha = 0.881;
-    sim.mu = 1.0;
+    sim.alpha = alpha;
+    sim.mu = mu;
 
     if (szr){
         sim.static_types = [S2Z, Z2R];
@@ -36,9 +36,7 @@ function launch(alpha, mu, szr){
             if (maxs.y < site.y) maxs.y = site.y;
         }
 
-        time += 1;
-        if (time % 5 == 0)
-            self.postMessage({"cmd": "site", "d": sites});
+        self.postMessage({"cmd": "site", "d": sites});
         sites = sim.dostep();
     }
     report();
