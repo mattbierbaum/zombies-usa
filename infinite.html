@@ -8,165 +8,107 @@
   </head>
   <!-- <body style="background-color: black;"> -->
   <body>
-    <div id="sdata" style="display: inline-block;"></div>
-    <div id="zdata" style="display: inline-block;"></div>
-    <div id="rdata" style="display: inline-block;"></div>
-    <div id="graph" style="display: inline-block;"></div>
+    <div id="data" style="display: inline-block;"></div>
 
 <script type="text/javascript">
-var width = 600;
-var height = 600;
-var bx = [0,1];
-var by = [0,1];
+var board = new InfiniteBoard(1);
+var sim = new Simulation(board);
+sim.alpha = 0.8;
+sim.mu = 1.0;
+sim.static_types = [S2Z, I2R];
+sim.motion_types = [S2Z];
 
-var svg = d3.select("#sdata")
+var mins = {x: 0, y: 0};
+var maxs = {x: 0, y: 0};
+
+var width = 500;
+var height = 500;
+var bx = 16;
+var by = bx;
+var sites = [];
+
+var svg = d3.select("#data")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var cells = svg.selectAll('rect');
+var xscale = d3.scale.linear().domain([-bx/2, bx/2]).range([0, width]);
+var yscale = d3.scale.linear().domain([-by/2, by/2]).range([height, 0]);
+var cells = svg.selectAll('rect').data(sim.sites);
 
-cells.enter().append('rect')
-    .attr("x", function(d) {return d.x});
-    .attr("y", function(d) {return d.x});
-    .attr("width", function(d) {return d.x});
-    .attr("height", function(d) {return d.x});
-            
-function fill(d) {
-    return d3.rgb( 255*d/maxPop, 0, 0);
+function fillfunc(d) {
+    if (d.S > 0) return d3.rgb( 0, 255, 0);
+    if (d.Z > 0) return d3.rgb( 255, 0, 0);
+    if (d.R > 0) return d3.rgb( 0, 0, 0);
 }
 
-function full_d3(state, pk, fillfunc) {
-    rows = svgs[pk].selectAll("g").data(state);
+function update_sites(sites) {
+    for (var c in sites){
+        var site = sites[c];
+        if (site.x < mins.x) mins.x = site.x;
+        if (site.y < mins.y) mins.y = site.y;
+        if (site.x > maxs.x) maxs.x = site.x;
+        if (site.y > maxs.y) maxs.y = site.y;
 
-    // update
-    rows.selectAll("rect").data(function(d){ return d })
-        //.transition().duration(100)
-        .attr("fill", fillfunc);
-
-    // new
-    rows.enter().append("g")
-        .selectAll("g")
-        .data(function(d){ return d })
-        .enter()
-        .append("rect")
-        .attr("x", function(d,i,j) {
-                return w*i;
-                })
-    .attr("y", function(d,i,j) {
-            return h*j;
-            })
-    .attr("height", h)
-        .attr("width", w)
-        .attr("id", function(d,i,j) {
-                return "b" + pk + "_" + i+"_"+j;
-                })
-    .attr("fill", fillfunc)
-        .attr("stroke","black")
-        .attr("stroke-width",0.1);
-
-    svgs[pk].attr("height", h*state.length);
-    svgs[pk].attr("width", w*state[0].length);
-}
-
-
-function update_d3(state, pk, sites, fillfunc) {
-    var l = sites.length;
-    for (var i=0; i<l; i++) {
-        var site = sites[i];
-        var a = site.y;
-        var b = site.x;
-        var d = state[a][b];
-        svgs[pk].select("#b" + pk + "_" + b + "_" + a)
-            .datum(state[a][b])
-            //.transition().duration(100)
+        svg.append('rect').datum(site)
             .attr("fill", fillfunc)
+            .attr("stroke","black")
+            .attr("stroke-width", xscale(0.01)-xscale(0))
+            .attr("id", function(d) {return d.hash})
+            .attr("x", function(d) {return xscale(d.x)})
+            .attr("y", function(d) {return yscale(d.y)})
+            .attr("width", xscale(1)-xscale(0))
+            .attr("height", yscale(0)-yscale(1))
     }
-}
 
-var dat = new Array(N);
-var maxPop = 0;
-for (var i=0; i<N; i++) {
-    dat[i] = new Array(N);
-    for (var j=0; j<N; j++) {
-        dat[i][j] = 1;
-        if (dat[i][j] > maxPop) maxPop = dat[i][j];
-    }
-}
+    var zoom = false;
+    if (mins.x == -bx/2) { bx = 4*Math.abs(mins.x); by = bx; zoom = true;}
+    if (mins.y == -by/2) { by = 4*Math.abs(mins.y); bx = by; zoom = true;}
+    if (maxs.x ==  bx/2) { bx = 4*Math.abs(maxs.x); by = bx; zoom = true;}
+    if (maxs.y ==  by/2) { by = 4*Math.abs(maxs.y); bx = by; zoom = true;}
 
-var board = new SquareBoard(dat);
-var sim = new Simulation(board);
-sim.alpha = 0.4;
-sim.mu = 1.0;
-sim.static_types = [S2Z, I2R];
-sim.motion_types = [S2Z];
-sim.addZombieSeed(N/2,N/2,S2Z);
+    if (zoom == true){
+        console.log('zoom');
+        xscale = d3.scale.linear().domain([-bx/2, bx/2]).range([0, width]);
+        yscale = d3.scale.linear().domain([-by/2, by/2]).range([height, 0]);
 
-graph.ylim(0, 1.04*sim.N);
-
-var state = new Array(3);
-for (var k=0; k<3; k++) {
-    state[k] = new Array(N);
-    for (var i=0; i<N; i++) {
-        state[k][i] = new Array(N);
-        for (var j=0; j<N; j++) {
-            state[k][i][j] = 0;
-            state[0][i][j] = dat[i][j];
-        }
-    }
-}
-full_d3(state[0],0,sfill);
-full_d3(state[1],1,zfill);
-full_d3(state[2],2,rfill);
-
-function modify_sites(sites) {
-    var l = sites.length;
-    for (var k=0; k<l; k++) {
-        var site = sites[k];
-        var i = site.y;
-        var j = site.x;
-        state[0][i][j] = site.S;
-        state[1][i][j] = site.Z;
-        state[2][i][j] = site.R;
+        svg.selectAll('rect')
+            .transition()
+            .attr("stroke-width", xscale(0.01)-xscale(0))
+            .attr("x", function(d) {return xscale(d.x)})
+            .attr("y", function(d) {return yscale(d.y)})
+            .attr("width", xscale(1)-xscale(0))
+            .attr("height", yscale(0)-yscale(1))
     }
 }
 
 function dostep() {
-    var next_time = sim.time + 0.01;
-    var update_sites = [];
-    while (sim.time < next_time) {
-        //for (var k=0; k<30; k++) {
+    var next_time = sim.time + 0.1;
+    var csites = [];
+    while (sim.time <= next_time) {
         var sites = sim.dostep();
         if (!sites) {
             window.clearInterval(intID);
             return;
         }
-        modify_sites(sites);
-        update_sites = update_sites.concat(sites);
+        csites = csites.concat(sites);
     }
 
-    T += 1;
-    update_d3(state[0],0,update_sites,sfill);
-    update_d3(state[1],1,update_sites,zfill);
-    update_d3(state[2],2,update_sites,rfill);
-    update_graphs(sim);
+    update_sites(csites);
 }
 
-function totalpop() {
-    var tot = 0;
-    for (var k=0; k<3; k++) {
-        for (var i=0; i<N; i++) {
-            for (var j=0; j<N; j++) {
-                tot += state[k][i][j];
-            }
-        }
-    }
-    return tot;
+var intID;
+function launch(){
+    sim.addZombieSeed(0,0,S2Z);
+    update_sites(sim.sites);
+    intID = setInterval(dostep, 30);
 }
 
-for (var t=0; t<20; t++)
-dostep();
-var intID = setInterval(dostep,2);
+function stop(){
+    window.clearInterval(intID);
+}
 </script>
+<input type='button' value='go' onclick='launch();'>
+<input type='button' value='stop' onclick='stop();'>
   </body>
 </html>

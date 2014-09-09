@@ -61,15 +61,15 @@ USAMapBoard.prototype = {
     }
 }
 
+Number.prototype.mod = function(n) {
+      return ((this%n)+n)%n;
+};
+
 function SquareBoard(dat){
     this.dat = dat;
     this.ymax = dat.length;
     this.xmax = dat[0].length;
 }
-
-Number.prototype.mod = function(n) {
-      return ((this%n)+n)%n;
-};
 
 SquareBoard.prototype = {
     pop: function (x,y) {
@@ -91,6 +91,27 @@ SquareBoard.prototype = {
             }
         }
         return tot;
+    }
+}
+
+function InfiniteBoard(n){
+    this.n = n;
+}
+
+InfiniteBoard.prototype = {
+    pop: function (x,y) {
+        return this.n;
+    },
+    neigh: function (x,y) {
+        sites = [];
+        sites.push({'x': x-1, 'y': y});
+        sites.push({'x': x+1, 'y': y});
+        sites.push({'x': x, 'y': y-1});
+        sites.push({'x': x, 'y': y+1});
+        return sites;
+    },
+    get_total: function(){
+        return 0;
     }
 }
 
@@ -119,7 +140,7 @@ function Site(x, y, N){
     this.hash = hashsite(this);
 }
 
-function hashsite(s){ return s.x+","+s.y; }
+function hashsite(s){ return "s"+s.x+"_"+s.y; }
 function hashbond(b){ return b.type+"|"+(b.s0+":"+b.s1); }
 
 function Simulation(board){
