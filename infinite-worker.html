@@ -5,7 +5,7 @@
     <script src="js/binaryheap.js?v=0"></script>
     <script src="js/simulation.js?v=0"></script>
     <script src="js/infinigraph.js?v=0"></script>
-</head>
+  </head>
 <style>
     .data {
         position: absolute;
@@ -14,10 +14,10 @@
     }
 </style>
   <body>
-    <div id="data"></div>
+    <div id="data" style="display: inline-block;"></div>
 
 <script type="text/javascript">
-var board, sim, graph; 
+var board, sim, graph;
 
 function init(){
     var width = window.innerHeight < window.innerWidth ?
@@ -30,54 +30,21 @@ function init(){
     graph = new InfiniGraph("data");
 }
 
-function dostep() {
-    var csites = [];
-    var next_time = sim.time + 0.1;
-    while (sim.time <= next_time) {
-    //for (var i=0; i<30; i++){
-        var sites = sim.dostep();
-        if (!sites) {
-            graph.update_sites(csites);
-            window.clearInterval(intID);
-            return;
-        }
-        csites = csites.concat(sites);
-    }
-
-    graph.update_sites(csites);
-}
-
-var intID;
+var worker;
 function launch(){
     reset();
-
-    sim.addZombieSeed(0,0,S2Z);
-    graph.update_sites(sim.sites);
-
-    intID = setInterval(dostep, 1);
+    worker = new Worker("js/worker-sim.js?v=0");
+    worker.postMessage({"cmd": "run", "alpha": 0.536, "mu": 1, "szr": true});
+    worker.onmessage = function(e) {
+        if (e.data['cmd'] == 'site')
+            graph.update_sites(e.data['d']);
+        if (e.data['cmd'] == 'report')
+            console.log(e.data);
+    }
 }
 
-function stop(){
-    window.clearInterval(intID);
-}
-
-function reset(){
-    stop();
-
-    board = new InfiniteBoard(1);
-    sim = new Simulation(board);
-    sim.mu = 1.0;
-
-    sim.static_types = [S2Z, Z2R];
-    sim.motion_types = [S2Z, Z2R];
-    sim.alpha = 0.436;
-
-    //sim.static_types = [S2Z, I2R];
-    //sim.motion_types = [S2Z];
-    //sim.alpha = 0.836;
-
-    graph.reset_display();
-}
+function stop(){ worker.postMessage({"cmd": "stop"}); }
+function reset(){ graph.reset_display(); }
 
 init();
 reset();

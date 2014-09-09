@@ -109,4 +109,3 @@ LineGraph.prototype = {
         }
     }
 }
-
