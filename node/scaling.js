@@ -1,57 +1,56 @@
+var binaryheap = require("../js/binaryheap.js");
+var simulation = require("../js/simulation.js");
+
 var fs = require('fs');
 
-var alpha = 0.500;
-var worker = new Array(4);
-var graph;
-
-var ymax = 0;
-var nbins = 30;
-var xmax = 1e5;
-var range = {'x0': 1, 'x1': xmax, 'step': xmax/nbins};
-
+var alpha = 0.460;
+var filename = "zombies-alpha-"+alpha+".json";
+var worker = new Array();
 var all = new Array();
-var bins = new Array(nbins);
-for (var i=0; i<nbins; i++) bins[i] = [range['x0']+(i+1)*range['step']/2, 0e-1];
 
-function init_graph(){
-    graph = new LineGraph("#graph", 800, 400, true);
-    graph.add_line(bins, 'black', 'alpha');
-    graph.xlim(bins[0][0], range['x1']);
-}
+function launch(){
+    var board = new simulation.InfiniteBoard(1);
+    var sim = new simulation.Simulation(board);
+    var mins = {"x": 0, "y": 0};
+    var maxs = {"x": 1, "y": 1};
 
-function launch(i){
-    worker[i] = new Worker("js/worker-sim.js?v=0");
-    worker[i].postMessage({"cmd": "run", "alpha": alpha, "mu": 1, "szr": true});
-    worker[i].onmessage = function warp(id){
-        return function(e) {
-            if (e.data['cmd'] == 'report'){
-                var n = e.data['N'];
-                var l = e.data['L'];
-                var ind = Math.floor(n / range['step']);
-                bins[ind][1] += 1;
+    sim.alpha = alpha;
+    sim.mu = 1;
+    sim.static_type = [simulation.S2Z, simulation.Z2R];
+    sim.motion_type = [simulation.S2Z, simulation.Z2R];
+    sim.addZombieSeed(0, 0, simulation.S2Z);
 
-                console.log(id+": "+l+", "+n);
-                all.push([l,n]);            
-                if (bins[ind][1] > ymax) ymax = bins[ind][1];
-
-                graph.update();
-                graph.ylim(1, 2*ymax);
-                launch(id);
-            }
+    var sites = sim.dostep();
+    while (sites){
+        for (var c in sites){
+            var site = sites[c];
+            if (mins.x > site.x) mins.x = site.x;
+            if (mins.y > site.y) mins.y = site.y;
+            if (maxs.x < site.x) maxs.x = site.x;
+            if (maxs.y < site.y) maxs.y = site.y;
         }
-    }(i);
-}
-
-function save(){
-    csv == "# N, count\n";
-    for (var i=0; i<bins.length; i++){
-        csv += bins[i][0]+", "+bins[i][1]+"\n";
+        sites = sim.dostep();
     }
-    var out = fs.createWriteStream(fileName, { encoding: "utf8" });
-    out.write(csv);
-    out.end();
+    var n = sim.R+sim.Z;
+    var l = Math.max((maxs.x-mins.x), (maxs.y-mins.y));
+
+    all.push([l,n]);
 }
 
-init_graph();
-launch(0);
-launch(1);
+function dowrite(){
+    fs.writeFileSync(
+        "./dat-alpha-"+alpha+".json",
+        JSON.stringify(all)
+    );
+}
+
+for (var i=0; i<1e5; i++){
+    launch();
+
+    if (i % 100 == 0){
+        console.log("Saving at "+i);
+        dowrite();
+    }
+}
+
+dowrite();

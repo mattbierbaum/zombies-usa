@@ -147,16 +147,16 @@
         }
       }
 
-      var board = new SquareBoard(dat);
-      var sim = new Simulation(board);
+      var board = new simulation.SquareBoard(dat);
+      var sim = new simulation.Simulation(board);
       sim.alpha = 0.4; //1.4;
       //sim.alpha = 0.2; //1.4;
       sim.mu = 1.0;
-      sim.static_types = [S2Z, I2R];
-      //sim.motion_types = [MOV];
-      //sim.motion_types = [S2Z, Z2R];
-      sim.motion_types = [S2Z];
-      sim.addZombieSeed(N/2,N/2,S2Z);
+      sim.static_types = [simulation.S2Z, simulation.I2R];
+      //sim.motion_types = [simulation.MOV];
+      //sim.motion_types = [simulation.S2Z, simulation.Z2R];
+      sim.motion_types = [simulation.S2Z];
+      sim.addZombieSeed(N/2,N/2,simulation.S2Z);
 
       graph.ylim(0, 1.04*sim.N);
 

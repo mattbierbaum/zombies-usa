@@ -10,20 +10,20 @@ function launch(alpha, mu, szr){
     mins = {"x": 0, "y": 0};
     maxs = {"x": 0, "y": 0};
 
-    board = new InfiniteBoard(1);
-    sim = new Simulation(board);
+    board = new simulation.InfiniteBoard(1);
+    sim = new simulation.Simulation(board);
     sim.alpha = alpha;
     sim.mu = mu;
 
     if (szr == true){
-        sim.static_types = [S2Z, Z2R];
-        sim.motion_types = [S2Z, Z2R];
+        sim.static_types = [simulation.S2Z, simulation.Z2R];
+        sim.motion_types = [simulation.S2Z, simulation.Z2R];
     } else {
-        sim.static_types = [S2Z, I2R];
-        sim.motion_types = [S2Z];
+        sim.static_types = [simulation.S2Z, simulation.I2R];
+        sim.motion_types = [simulation.S2Z];
     }
 
-    sim.addZombieSeed(0,0,S2Z);
+    sim.addZombieSeed(0, 0, simulation.S2Z);
 
     var sites = sim.dostep();
     var time = 0;

@@ -27,8 +27,17 @@ InfiniGraph.prototype = {
             if (site.y > this.maxs.y) this.maxs.y = site.y;
 
             if (!this.svg.select(site.hash).empty()){
-                this.svg.select("#"+site.hash)
-                    .attr("fill", fillfunc);
+                this.svg.select("#"+site.hash).datum(site)
+                    .attr("fill", fillfunc)
+                    .attr("id", function(d) {return d.hash})
+                    .attr("x", function wrap(g){
+                        return function(d) {return g.xscale(d.x)};
+                    }(this))
+                    .attr("y", function wrap(g){
+                        return function(d) {return g.yscale(d.y)};
+                    }(this))
+                    .attr("width", this.xscale(1)-this.xscale(0))
+                    .attr("height", this.yscale(0)-this.yscale(1));
             } else {
                 this.svg.append('rect').datum(site)
                     .attr("fill", this.fillfunc)

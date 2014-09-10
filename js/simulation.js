@@ -1,3 +1,14 @@
+(function(exports){
+"use strict";
+
+var isNode = typeof global !== "undefined" && 
+        {}.toString.call(global) == '[object global]';
+
+/*if (isNode){
+    console.log('hi');
+    var binaryheap = require("./binaryheap.js");
+}*/
+
 var S2Z = "B";
 var Z2R = "K";
 var I2R = "R";
@@ -42,7 +53,7 @@ USAMapBoard.prototype = {
     },
 
     neigh: function (x,y) {
-        sites = [];
+        var sites = [];
         for (var i=Math.max(x-1, 0); i<=Math.min(x+1, this.xmax-1); i+=2)
             sites.push({'x': i, 'y': y});
         for (var j=Math.max(y-1, 0); j<=Math.min(y+1, this.ymax-1); j+=2)
@@ -76,7 +87,7 @@ SquareBoard.prototype = {
         return Math.floor(this.dat[y][x]);
     },
     neigh: function (x,y) {
-        sites = [];
+        var sites = [];
         sites.push({'x': (x-1).mod(this.xmax), 'y': y});
         sites.push({'x': (x+1).mod(this.xmax), 'y': y});
         sites.push({'x': x, 'y': (y-1).mod(this.ymax)});
@@ -103,7 +114,7 @@ InfiniteBoard.prototype = {
         return this.n;
     },
     neigh: function (x,y) {
-        sites = [];
+        var sites = [];
         sites.push({'x': x-1, 'y': y});
         sites.push({'x': x+1, 'y': y});
         sites.push({'x': x, 'y': y-1});
@@ -151,10 +162,10 @@ function Simulation(board){
     this.bonds = {};
     this.static_types = [S2Z, Z2R];
     this.motion_types = [S2Z, Z2R];
-    this.heap = new BinaryHeap(tauGetter, hashGetter);
+    this.heap = new binaryheap.BinaryHeap(tauGetter, hashGetter);
     this.board = board;
 
-    tot = board.get_total();
+    var tot = board.get_total();
     this.S = tot; this.N = tot;
     this.Z = 0; this.R = 0;
 }
@@ -218,7 +229,7 @@ Simulation.prototype = {
     },
 
     addZombieSeed: function (x, y, type){
-        s0 = this.get_site(x,y);
+        var s0 = this.get_site(x,y);
         if (s0.N <= 0 || s0.Z > 0) return 0;
 
         if (type == S2Z) bite(s0, this);
@@ -276,11 +287,11 @@ Simulation.prototype = {
                 move(site, site2);
         }
 
-        for (b in site.bonds)
+        for (var b in site.bonds)
             this.update_bond(this.bonds[b]);
 
         if (bond.type == MOV) {
-          for (b in site2.bonds)
+          for (var b in site2.bonds)
               this.update_bond(this.bonds[b]);
         }
 
@@ -289,3 +300,14 @@ Simulation.prototype = {
         return [site];
     },
 }
+
+exports.S2Z = S2Z;
+exports.Z2R = Z2R;
+exports.I2R = I2R;
+exports.MOV = MOV;
+exports.USAMapBoard = USAMapBoard;
+exports.InfiniteBoard = InfiniteBoard;
+exports.SquareBoard = SquareBoard;
+exports.Simulation = Simulation;
+      
+}(typeof exports === 'undefined' ? this.simulation = {} : exports));

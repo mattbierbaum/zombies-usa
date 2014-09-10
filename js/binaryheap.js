@@ -1,3 +1,6 @@
+(function(exports){
+"use strict";
+
 function score_int(a) { return a; }
 function score_loc(a) { return a; }
 
@@ -110,3 +113,6 @@ BinaryHeap.prototype = {
        }
     },
 };
+
+exports.BinaryHeap = BinaryHeap;
+}(typeof exports === 'undefined' ? this.binaryheap = {} : exports));
