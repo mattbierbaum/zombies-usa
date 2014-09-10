@@ -7,10 +7,14 @@
     <script src="js/infinigraph.js?v=0"></script>
 </head>
 <style>
-    .data {
+    #data {
         position: absolute;
         top: 0px;
         left: 0px;
+        /*background-color: #DFF1FF;*/
+        border-width: 1px;
+        border-color: black;
+        border-style: solid;
     }
 </style>
   <body>
@@ -22,6 +26,7 @@ var board, sim, graph, alpha=0.439, doszr=true;
 function init(){
     var width = window.innerHeight < window.innerWidth ?
         window.innerHeight : window.innerWidth;
+    width -= 2;
     var height = width;
 
     document.getElementById('data')
