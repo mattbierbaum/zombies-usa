@@ -1,12 +1,30 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/graph.js?v=0"></script>
   </head>
   <body>
+    <div id="graph" style="display: inline-block;"></div>
 <script type="text/javascript">
-var alpha = 0.450;
+var alpha = 0.500;
 var worker = new Array(4);
+var graph;
+
+var ymax = 0;
+var nbins = 30;
+var xmax = 1e5;
+var range = {'x0': 1, 'x1': xmax, 'step': xmax/nbins};
+
 var all = new Array();
+var bins = new Array(nbins);
+for (var i=0; i<nbins; i++) bins[i] = [range['x0']+(i+1)*range['step']/2, 0e-1];
+
+function init_graph(){
+    graph = new LineGraph("#graph", 800, 400, true);
+    graph.add_line(bins, 'black', 'alpha');
+    graph.xlim(bins[0][0], range['x1']);
+}
 
 function launch(i){
     worker[i] = new Worker("js/worker-sim.js?v=0");
@@ -16,11 +34,16 @@ function launch(i){
             if (e.data['cmd'] == 'report'){
                 var n = e.data['N'];
                 var l = e.data['L'];
+                var ind = Math.floor(n / range['step']);
+                bins[ind][1] += 1;
 
                 console.log(id+": "+l+", "+n);
                 all.push([l,n]);            
+                if (bins[ind][1] > ymax) ymax = bins[ind][1];
 
-                setTimeout(function(){launch(id);}, 20);
+                graph.update();
+                graph.ylim(1, 2*ymax);
+                launch(id);
             }
         }
     }(i);
@@ -39,18 +62,25 @@ function hidden_link_download(uri, filename){
 
 function download(){
     var csv = "data:text/csv;charset=utf-8,";
+    csv += "# N, count\n";
+    for (var i=0; i<bins.length; i++){
+        csv += bins[i][0]+", "+bins[i][1]+"\n";
+    }
+    var encoded = encodeURI(csv);
+    hidden_link_download(encoded, 'zombies-binned.csv');
+
+    csv = "data:text/csv;charset=utf-8,";
     csv += "# length (l), mass (n)\n";
     for (var i=0; i<all.length; i++){
         csv += all[i][0]+", "+all[i][1]+"\n";
     }
     var encoded = encodeURI(csv);
-    hidden_link_download(encoded, 'zombies-alpha-'+alpha+'.csv');
+    hidden_link_download(encoded, 'zombies-raw.csv');
 }
 
+init_graph();
 launch(0);
 launch(1);
-launch(2);
-launch(3);
 
 </script>
 <input type='button' value='download' style='position: absolute; top: 0px; left: 0px;' onclick='download()'/>
