@@ -4,10 +4,10 @@
 var isNode = typeof global !== "undefined" && 
         {}.toString.call(global) == '[object global]';
 
-/*if (isNode){
-    console.log('hi');
-    var binaryheap = require("./binaryheap.js");
-}*/
+if (isNode)
+    var localbinaryheap = require("./binaryheap.js");
+else
+    var localbinaryheap = binaryheap;
 
 var S2Z = "B";
 var Z2R = "K";
@@ -162,7 +162,7 @@ function Simulation(board){
     this.bonds = {};
     this.static_types = [S2Z, Z2R];
     this.motion_types = [S2Z, Z2R];
-    this.heap = new binaryheap.BinaryHeap(tauGetter, hashGetter);
+    this.heap = new localbinaryheap.BinaryHeap(tauGetter, hashGetter);
     this.board = board;
 
     var tot = board.get_total();

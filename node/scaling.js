@@ -3,10 +3,14 @@ var simulation = require("../js/simulation.js");
 
 var fs = require('fs');
 
-var alpha = 0.460;
+var alpha = 0.455;
 var filename = "zombies-alpha-"+alpha+".json";
 var worker = new Array();
 var all = new Array();
+
+var args = process.argv.slice(2);
+if (args.length >= 0)
+    alpha = parseFloat(args[0]);
 
 function launch(){
     var board = new simulation.InfiniteBoard(1);
