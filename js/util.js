@@ -38,3 +38,48 @@ function download(obj, filename){
     var csv = "data:application/json;charset=utf-8,"+JSON.stringify(obj);
     hidden_link_download(encodeURI(csv), filename);
 }
+
+function savexmp(sites){
+    var mins = {'x': 1e10, 'y': 1e10};
+    var maxs = {'x': -1e10, 'y': -1e10};
+
+    for (var c in sites){
+        var site = sites[c];
+        if (mins.x > site.x) { mins.x = site.x; }
+        if (mins.y > site.y) { mins.y = site.y; }
+        if (maxs.x < site.x) { maxs.x = site.x; }
+        if (maxs.y < site.y) { maxs.y = site.y; }
+    }
+
+    var height = maxs.y - mins.y + 1;
+    var width = maxs.x - maxs.x + 1;
+
+    var out = "! XPM2\n";
+    out += ""+width+" "+height+" 3 1 \n";
+    out += ". c black\n";
+    out += "X c red\n";
+    out += "  c None\n";
+
+    var arr = new Array(width*height);
+    for (var i=0; i<width*height; i++)
+        arr[i] = ' ';
+
+    for (var i in sites){
+        var site = sites[i];
+        var x = site.x - mins.x;
+        var y = site.y - mins.y;
+        var ind = x + y*width;
+
+        if (site.Z > 0) arr[ind] = 'X';
+        if (site.R > 0) arr[ind] = '.';
+    }
+
+    for (var i=0; i<width; i++){
+        for (var j=0; j<height; j++){
+            out += arr[i+j*width];
+        }
+        out += "\n";
+    }
+
+    return out;
+}
