@@ -23,3 +23,18 @@ function loadGrid(url, callback) {
    xobj.send(null);
 }
 
+function hidden_link_download(uri, filename){
+    var link = document.createElement('a');
+    link.href = uri;
+    link.style.display = 'none';
+    link.download = filename
+    link.id = 'templink';
+    document.body.appendChild(link);
+    document.getElementById('templink').click();
+    document.body.removeChild(document.getElementById('templink'));
+}
+
+function download(obj, filename){
+    var csv = "data:application/json;charset=utf-8,"+JSON.stringify(obj);
+    hidden_link_download(encodeURI(csv), filename);
+}
