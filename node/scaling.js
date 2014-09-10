@@ -1,12 +1,5 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <script src="js/graph.js?v=0"></script>
-  </head>
-  <body>
-    <div id="graph" style="display: inline-block;"></div>
-<script type="text/javascript">
+var fs = require('fs');
+
 var alpha = 0.500;
 var worker = new Array(4);
 var graph;
@@ -49,40 +42,16 @@ function launch(i){
     }(i);
 }
 
-function hidden_link_download(uri, filename){
-    var link = document.createElement('a');
-    link.href = uri;
-    link.style.display = 'none';
-    link.download = filename
-    link.id = 'templink';
-    document.body.appendChild(link);
-    document.getElementById('templink').click();
-    document.body.removeChild(document.getElementById('templink'));
-}
-
-function download(){
-    var csv = "data:text/csv;charset=utf-8,";
-    csv += "# N, count\n";
+function save(){
+    csv == "# N, count\n";
     for (var i=0; i<bins.length; i++){
         csv += bins[i][0]+", "+bins[i][1]+"\n";
     }
-    var encoded = encodeURI(csv);
-    hidden_link_download(encoded, 'zombies-binned.csv');
-
-    csv = "data:text/csv;charset=utf-8,";
-    csv += "# length (l), mass (n)\n";
-    for (var i=0; i<all.length; i++){
-        csv += all[i][0]+", "+all[i][1]+"\n";
-    }
-    var encoded = encodeURI(csv);
-    hidden_link_download(encoded, 'zombies-raw.csv');
+    var out = fs.createWriteStream(fileName, { encoding: "utf8" });
+    out.write(csv);
+    out.end();
 }
 
 init_graph();
 launch(0);
 launch(1);
-
-</script>
-<input type='button' value='download' style='position: absolute; top: 0px; left: 0px;' onclick='download()'/>
-  </body>
-</html>
