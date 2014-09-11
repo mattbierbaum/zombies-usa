@@ -3,17 +3,20 @@ var simulation = require("../js/simulation.js");
 
 var fs = require('fs');
 
-var alpha = 0.455;
-var filename = "zombies-alpha-"+alpha+".json";
+var alpha = 0.441;
+var L = 1024;
+var N = 1024;
 var worker = new Array();
 var all = new Array();
 
 var args = process.argv.slice(2);
 if (args.length > 0)
-    alpha = parseFloat(args[0]);
+    L = parseFloat(args[0]);
+if (args.length > 1)
+    N = parseInt(args[1]);
 
 function launch(){
-    var board = new simulation.InfiniteBoard(1);
+    var board = new simulation.UniformSquareBoard(L,1);
     var sim = new simulation.Simulation(board);
     var mins = {"x": 0, "y": 0};
     var maxs = {"x": 1, "y": 1};
@@ -35,24 +38,24 @@ function launch(){
         }
         sites = sim.dostep();
     }
-    var n = sim.R+sim.Z;
     var l = Math.max((maxs.x-mins.x), (maxs.y-mins.y));
-
-    all.push([l,n]);
+    all.push([alpha, L, l, sim.Z, sim.R]);
 }
 
 function dowrite(){
-    var filename = "./dat-alpha-"+alpha+".json";
+    var filename = "/media/scratch/zombies/dat-alpha-scan-"+L+".json";
     fs.writeFileSync(filename, JSON.stringify(all));
 }
 
-for (var i=0; i<1e5; i++){
-    launch();
-
-    if (i % 100 == 0){
-        console.log("Saving at "+i);
-        dowrite();
+for (var a=0.47; a>=0.42; a-=0.002){
+    alpha = a;
+    console.log("alpha = "+alpha);
+    for (var i=0; i<N; i++){
+        launch();
+    
+        if (i % 100 == 0) console.log("At "+i);
     }
+    dowrite();
 }
 
 dowrite();
