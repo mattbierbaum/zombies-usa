@@ -21,7 +21,7 @@
     <div id="data"></div>
 
 <script type="text/javascript">
-var board, sim, graph, alpha=0.439, doszr=true;
+var board, sim, graph, alpha=0.441, doszr=true;
 
 function init(){
     var width = window.innerHeight < window.innerWidth ?
@@ -88,24 +88,31 @@ function reset(){
     graph.reset_display();
 }
 
-function change_alpha(slider){
-    alpha = slider.value;
+function dochange_alpha(alphain){
+    alpha = alphain;
+    document.getElementById('slider_alpha').value = alpha;
     document.getElementById('label').innerHTML = ""+alpha;
     if (sim) sim.alpha = alpha;
+}
+
+function change_alpha(slider){
+    dochange_alpha(slider.value);
 }
 
 function change_szr(check){
     doszr = check.checked;
 }
 
-init();
-reset();
-
+window.onload = function(){
+    dochange_alpha(alpha);
+    init();
+    reset();
+}
 </script>
 <br/>
 <input type='button' value='go' style='top: 0; left: 0; position: absolute;' onclick='launch();'/>
 <input type='button' value='stop' style='top: 0; left: 35px; position: absolute;' onclick='stop();'/>
-<input type='range' name='alpha' style='width: 400px; top: 2px; left: 82px; position: absolute;' min=0.001 max=1 step=0.001 value=0.439 oninput='change_alpha(this)' onchange='change_alpha(this);'/>
+<input id='slider_alpha' type='range' name='alpha' style='width: 400px; top: 2px; left: 82px; position: absolute;' min=0.001 max=1 step=0.001 value=0.439 oninput='change_alpha(this)' onchange='change_alpha(this);'/>
 <span id='label' style='top: 5px; left: 500px; position: absolute;'>0.439</span>
 <input type='checkbox' name='doszr' style='position: absolute; top: 4px; left: 540px;' value='SZR' checked='checked' onchange='change_szr(this)'/>
 <span id='label' style='top: 5px; left: 558px; position: absolute;'>SZR</span>
