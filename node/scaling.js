@@ -4,16 +4,20 @@ var simulation = require("../js/simulation.js");
 var fs = require('fs');
 
 var alpha = 0.455;
+var L = 1024;
 var filename = "zombies-alpha-"+alpha+".json";
 var worker = new Array();
 var all = new Array();
 
 var args = process.argv.slice(2);
-if (args.length >= 0)
+if (args.length > 0)
     alpha = parseFloat(args[0]);
+if (args.length > 1)
+    L = parseFloat(args[1]);
 
 function launch(){
-    var board = new simulation.InfiniteBoard(1);
+    //var board = new simulation.InfiniteBoard(1);
+    var board = new simulation.UniformSquareBoard(L,1);
     var sim = new simulation.Simulation(board);
     var mins = {"x": 0, "y": 0};
     var maxs = {"x": 1, "y": 1};
@@ -42,10 +46,10 @@ function launch(){
 }
 
 function dowrite(){
-    fs.writeFileSync(
-        "./dat-alpha-"+alpha+".json",
-        JSON.stringify(all)
-    );
+    var filename = "./dat-alpha-"+alpha+".json";
+    if (L) filename = "./dat-alpha-"+alpha+"-"+L+".json";
+
+    fs.writeFileSync(filename, JSON.stringify(all));
 }
 
 for (var i=0; i<1e5; i++){

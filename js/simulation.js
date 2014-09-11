@@ -1,7 +1,7 @@
 (function(exports){
 "use strict";
 
-var isNode = typeof global !== "undefined" && 
+var isNode = typeof global !== "undefined" &&
         {}.toString.call(global) == '[object global]';
 
 if (isNode)
@@ -75,6 +75,29 @@ USAMapBoard.prototype = {
 Number.prototype.mod = function(n) {
       return ((this%n)+n)%n;
 };
+
+function UniformSquareBoard(L, n){
+    this.n = n;
+    this.ymax = L;
+    this.xmax = L;
+}
+
+UniformSquareBoard.prototype = {
+    pop: function (x,y) {
+        return this.n;
+    },
+    neigh: function (x,y) {
+        var sites = [];
+        sites.push({'x': (x-1).mod(this.xmax), 'y': y});
+        sites.push({'x': (x+1).mod(this.xmax), 'y': y});
+        sites.push({'x': x, 'y': (y-1).mod(this.ymax)});
+        sites.push({'x': x, 'y': (y+1).mod(this.ymax)});
+        return sites;
+    },
+    get_total: function(){
+        return this.xmax*this.ymax*this.n;
+    }
+}
 
 function SquareBoard(dat){
     this.dat = dat;
@@ -308,6 +331,7 @@ exports.MOV = MOV;
 exports.USAMapBoard = USAMapBoard;
 exports.InfiniteBoard = InfiniteBoard;
 exports.SquareBoard = SquareBoard;
+exports.UniformSquareBoard = UniformSquareBoard;
 exports.Simulation = Simulation;
-      
+
 }(typeof exports === 'undefined' ? this.simulation = {} : exports));
