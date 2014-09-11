@@ -4,7 +4,11 @@ var simulation = require("../js/simulation.js");
 
 var fs = require('fs');
 
-var alpha = 0.450;
+var args = process.argv.slice(2);
+if (args.length > 0)
+    goal = parseInt(args[0]);
+
+var alpha = 0.441;
 var filename = "cluster-pic.xpm";
 
 var board = new simulation.InfiniteBoard(1);
