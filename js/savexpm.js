@@ -18,7 +18,8 @@ function xpm(sites){
     var mins = {'x': 1e10, 'y': 1e10};
     var maxs = {'x': -1e10, 'y': -1e10};
 
-    for (var c in sites){
+    var sl = sites.length;
+    for (var c=0; c<sl; c++){
         var site = sites[c];
         if (mins.x > site.x) { mins.x = site.x; }
         if (mins.y > site.y) { mins.y = site.y; }
@@ -40,7 +41,8 @@ function xpm(sites){
     for (var i=0; i<width*height; i++)
         arr[i] = ' ';
 
-    for (var i in sites){
+    var sl = sites.length;
+    for (var i=0; i<sl; i++){
         var site = sites[i];
         var x = site.x - mins.x;
         var y = site.y - mins.y;

@@ -28,7 +28,8 @@ function launch(alpha, mu, szr){
     var sites = sim.dostep();
     var time = 0;
     while (sites && running){
-        for (var c in sites){
+        var sl = sites.length;
+        for (var c=0; c<sl; c++){
             var site = sites[c];
             if (mins.x > site.x) mins.x = site.x;
             if (mins.y > site.y) mins.y = site.y;

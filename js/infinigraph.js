@@ -19,7 +19,8 @@ InfiniGraph.prototype = {
     },
 
     update_sites: function(sites){
-        for (var c in sites){
+        var sl = sites.length;
+        for (var c=0; c<sl; c++){
             var site = sites[c];
             if (site.x < this.mins.x) this.mins.x = site.x;
             if (site.y < this.mins.y) this.mins.y = site.y;

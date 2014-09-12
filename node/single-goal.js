@@ -26,9 +26,11 @@ function launch(){
     sim.addZombieSeed(0, 0, simulation.S2Z);
 
     var l = 0;
+    var t = 0;
     var sites = sim.dostep();
     while (sites){
-        for (var c in sites){
+        var sl = sites.length;
+        for (var c=0; c<sl; c++){
             var site = sites[c];
             if (mins.x > site.x) mins.x = site.x;
             if (mins.y > site.y) mins.y = site.y;
@@ -37,8 +39,10 @@ function launch(){
         }
         l = Math.max((maxs.x-mins.x), (maxs.y-mins.y));
 
+        if (t % 10000 == 0) console.log("time: "+t+" length: "+l);
         if (l >= goal) break;
         sites = sim.dostep();
+        t += 1;
     }
     return l;
 }

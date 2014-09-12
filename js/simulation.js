@@ -175,6 +175,7 @@ function Site(x, y, N){
 }
 
 function hashsite(s){ return "s"+s.x+"_"+s.y; }
+function hashsitexy(x,y){ return "s"+x+"_"+y; }
 function hashbond(b){ return b.type+"|"+(b.s0+":"+b.s1); }
 
 function Simulation(board){
@@ -310,12 +311,16 @@ Simulation.prototype = {
                 move(site, site2);
         }
 
-        for (var b in site.bonds)
-            this.update_bond(this.bonds[b]);
+        var bs = Object.keys(site.bonds);
+        var bsl = bs.length;
+        for (var i=0; i<bsl; i++)
+            this.update_bond(this.bonds[bs[i]]);
 
         if (bond.type == MOV) {
-          for (var b in site2.bonds)
-              this.update_bond(this.bonds[b]);
+            bs = Object.keys(site2.bonds);
+            bsl = bs.length;
+            for (var i=0; i<bsl; i++)
+                this.update_bond(this.bonds[bs[i]]);
         }
 
         if (bond.type == MOV)

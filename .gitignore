@@ -2,3 +2,4 @@ twistd.pid
 *~
 dat-*.json
 cluster-pic.xpm
+v8.log
