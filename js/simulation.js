@@ -151,16 +151,16 @@ InfiniteBoard.prototype = {
 
 function tauGetter(bond){ return bond.tau; }
 function hashGetter(bond){ return bond.hash; }
-function Bond(s0, s1, type){
+function Bond(s0, s1, type, h){
     // these are locations as hashes
     this.s0 = s0.hash;
     this.s1 = s1.hash;
     this.type = type;
     this.tau = 0;
-    this.hash = hashbond(this);
+    this.hash = h;
 }
 
-function Site(x, y, N){
+function Site(x, y, N, h){
     this.x = x;
     this.y = y;
 
@@ -171,12 +171,8 @@ function Site(x, y, N){
 
     // dictionary of hashes for easy membership tests
     this.bonds = {};
-    this.hash = hashsite(this);
+    this.hash = h;
 }
-
-function hashsite(s){ return "s"+s.x+"_"+s.y; }
-function hashsitexy(x,y){ return "s"+x+"_"+y; }
-function hashbond(b){ return b.type+"|"+(b.s0+":"+b.s1); }
 
 function Simulation(board){
     this.alpha = 1;
@@ -192,23 +188,37 @@ function Simulation(board){
     var tot = board.get_total();
     this.S = tot; this.N = tot;
     this.Z = 0; this.R = 0;
+    this.lh = '';
 }
 
 Simulation.prototype = {
+    chs: function(x,y){
+        this.lh = "s"+x+"_"+y;
+    },
+    chb: function(t,s0,s1){
+        this.lh = "b"+t+"|"+s0.x+"_"+s0.y+":"+s1.x+"_"+s1.y;
+    },
+
     // returns a site given x,y
     get_site: function (x,y) {
-        var site = new Site(x, y, this.board.pop(x,y));
-        if (this.sites[site.hash])
-            return this.sites[site.hash];
+        this.chs(x,y);
+
+        if (this.sites[this.lh])
+            return this.sites[this.lh];
+
+        var site = new Site(x, y, this.board.pop(x,y), this.lh);
         this.sites[site.hash] = site;
         return this.sites[site.hash];
     },
 
     // returns a bond in the priority queue, or makes one
     get_bond: function (s0, s1, type){
-        var bond = new Bond(s0, s1, type);
-        if (this.bonds[bond.hash])
-            return this.bonds[bond.hash];
+        this.chb(type, s0, s1);
+
+        if (this.bonds[this.lh])
+            return this.bonds[this.lh];
+
+        var bond = new Bond(s0, s1, type, this.lh);
         this.bonds[bond.hash] = bond;
         return this.bonds[bond.hash];
     },
@@ -232,6 +242,13 @@ Simulation.prototype = {
 
         if (weight > 0 && (bond.tau < 1/0) )
             this.heap.push(bond);
+        else {
+            var s0 = this.sites[bond.s0];
+            var s1 = this.sites[bond.s1];
+            delete s0.bonds[bond.hash];
+            delete s1.bonds[bond.hash];
+            delete this.bonds[bond.hash];
+        }
     },
 
     push_bond: function (s0, s1, type){
