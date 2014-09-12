@@ -1,0 +1,1 @@
+node --nouse-idle-notification --max-old-space-size=8192 --allow-natives-syntax
