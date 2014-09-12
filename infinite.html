@@ -21,6 +21,7 @@
     <div id="data"></div>
 
 <script type="text/javascript">
+var running = false;
 var board, sim, graph, alpha=0.441, doszr=true;
 
 function init(){
@@ -37,33 +38,32 @@ function init(){
 
 function dostep() {
     var csites = [];
-    var next_time = sim.time + 0.1;
-    while (sim.time <= next_time) {
-    //for (var i=0; i<30; i++){
+    for (var i=0; i<30; i++){
         var sites = sim.dostep();
         if (!sites) {
             graph.update_sites(csites);
-            window.clearInterval(intID);
+            running = false;
             return;
         }
         csites = csites.concat(sites);
     }
 
     graph.update_sites(csites);
+    if (running) setTimeout(dostep, 1);
 }
 
-var intID;
 function launch(){
     reset();
 
     sim.addZombieSeed(0, 0, simulation.S2Z);
     graph.update_sites(sim.sites);
 
-    intID = setInterval(dostep, 1);
+    running = true;
+    dostep();
 }
 
 function stop(){
-    window.clearInterval(intID);
+    running = false;
 }
 
 function reset(){
@@ -76,13 +76,11 @@ function reset(){
     if (doszr){
         sim.static_types = [simulation.S2Z, simulation.Z2R];
         sim.motion_types = [simulation.S2Z, simulation.Z2R];
-        //sim.motion_types = [simulation.MOV];
         sim.alpha = alpha;
     } else {
         sim.static_types = [simulation.S2Z, simulation.I2R];
         sim.motion_types = [simulation.S2Z];
-        //sim.motion_types = [simulation.MOV];
-        sim.alpha = 0.836;
+        sim.alpha = alpha;
     }
 
     graph.reset_display();
@@ -95,13 +93,8 @@ function dochange_alpha(alphain){
     if (sim) sim.alpha = alpha;
 }
 
-function change_alpha(slider){
-    dochange_alpha(slider.value);
-}
-
-function change_szr(check){
-    doszr = check.checked;
-}
+function change_alpha(slider){ dochange_alpha(slider.value); }
+function change_szr(check){ doszr = check.checked; }
 
 window.onload = function(){
     dochange_alpha(alpha);
