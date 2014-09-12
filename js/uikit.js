@@ -253,8 +253,7 @@ TextBox.prototype.setText = function(txt, ctx){
     this.text = txt;
     var paragraphs = this.text.split('\n');
     this.pars = [];
-    var pl = paragraphs.length;
-    for (var i=0; i<pl; i++){
+    for (var i in paragraphs){
         var par = paragraphs[i];
         var group = [];
         var words = par.split(' ');
