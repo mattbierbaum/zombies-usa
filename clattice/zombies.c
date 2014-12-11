@@ -33,6 +33,8 @@ world *create_world(int N, float alpha){
 
 void blank_world(world *w){
     w->S = w->N*w->N; w->Z = 0; w->R = 0;
+    w->minx = w->miny = 1e8;
+    w->maxx = w->maxy = -1e8;
     w->nbonds = 0;
     w->nsites = 0;
 
@@ -53,6 +55,8 @@ void set_seed(uint64_t initstate, uint64_t initseq){
 
 void reset_inplace(world *w){
     w->S = w->N*w->N; w->Z = 0; w->R = 0;
+    w->minx = w->miny = 1e8;
+    w->maxx = w->maxy = -1e8;
 
     for (int i=0; i<w->nbonds; i++){
         w->bondgrid[w->bonds[i]] = -1;
@@ -144,6 +148,10 @@ void add_zombie(world *w, int x, int y){
 
         w->sites[w->nsites] = ind0;
         w->nsites += 1;
+        if (w->minx > x) w->minx = x;
+        if (w->miny > y) w->miny = y;
+        if (w->maxx < x) w->maxx = x;
+        if (w->maxy < y) w->maxy = y;
     }
 
     for (int i=-1; i<=1; i+=2){

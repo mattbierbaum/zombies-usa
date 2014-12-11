@@ -21,7 +21,7 @@ int main(int argc, char **argv){
     
     set_seed(time(NULL) ^ (intptr_t)&printf, (intptr_t)&round);
 
-    int NN = 8192/2;
+    int NN = 8192/1;
     world *w = create_world(NN, alpha);
 
     add_zombie(w, NN/2, NN/2);

@@ -17,6 +17,7 @@
 typedef struct {
     int N;
     int S, Z, R;
+    int minx, miny, maxx, maxy;
     float alpha;
     char *grid;
 
