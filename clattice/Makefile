@@ -1,6 +1,6 @@
-EXE=zombies
-OBJECTS=
-CFLAGS=-std=c99 -Wall -Wextra -Werror -pedantic -flto -O3 -m64 -Ofast -march=native -fopenmp -D_POSIX_C_SOURCE=199309L
+EXE=do_snap do_stats
+OBJECTS=pcg_basic.o zombies.o
+CFLAGS=-std=c99 -Wall -Wextra -Werror -pedantic -flto -O3 -Ofast -m64 -march=native -fopenmp -D_POSIX_C_SOURCE=199309L
 LDLIBS=-lm -lrt -g
 CC=c99
 

@@ -1,1 +1,6 @@
 zombies
+cluster
+*.o
+do_stats
+do_cluster
+do_clusters
