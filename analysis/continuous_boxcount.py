@@ -1,7 +1,3 @@
-import matplotlib as mpl
-mpl.use('Agg')
-import pylab as pl
-
 import numpy as np
 import scipy.ndimage as nd
 import scipy.optimize as opt
@@ -43,14 +39,15 @@ def exponent(boxes, areas, dim=2, lower=2, upper=2):
 def analyze_all():
     current = 0
     
-    filename = '/media/scratch/test.xpm'
-    pic = '/media/scratch/test.png'
+    filename = '/media/scratch/test.bin'
     while True:
         check_output(['do_snap_large', filename])
-        check_output(['convert', filename, pic])
 
-        image = pl.imread(pic)
-        binary = 1*(image.mean(axis=-1) != 1)
+        image = np.fromfile(filename, dtype='uint8')
+        sidelen = np.sqrt(image.shape[0])
+        image = image.reshape(sidelen, sidelen)
+
+        binary = 1*(image != 0)
 
         tb, ta = getcurve(binary)
         fit = exponent(tb, ta)
