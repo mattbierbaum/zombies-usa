@@ -17,6 +17,10 @@
 pcg32_random_t rng;
 char SYMBOLS[] = {' ', 'X', '.'};
 
+int mod(int a, int b){ return a - b*((int)(a/b)) + b*(a<0); }
+int xy2ind(int N, int x, int y){ return x + N*y; }
+void ind2xy(int N, int ind, int *x, int *y){ *x = ind % N; *y = ind / N; }
+
 world *create_world(int N, float alpha){
     world *w = malloc(sizeof(world));
     w->N = N;
@@ -78,7 +82,7 @@ int inds2bond(int N, int ind0, int ind1){
     ind2xy(N, ind0, &x0, &y0);
     ind2xy(N, ind1, &x1, &y1);
 
-    int level;
+    int level = 0;
     if (y0 == y1){
         if (x1-x0 == -1 || x1-x0 == N-1) level=0;
         if (x1-x0 ==  1 || x1-x0 == 1-N) level=1;
@@ -292,3 +296,8 @@ void save_xpm(world *w, char *filename){
     fclose(f);
 }
 
+void save_binary(world *w, char *filename){
+    FILE *f = fopen(filename, "w");
+    fwrite(w->grid, sizeof(char), w->N*w->N, f);
+    fclose(f);
+}

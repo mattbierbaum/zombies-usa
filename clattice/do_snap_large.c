@@ -33,7 +33,8 @@ int main(int argc, char **argv){
         
         if (w->maxx - w->minx > NN-4 || w->maxy - w->miny > NN-4){
             printf("Saving %s -- ", filename);
-            save_xpm(w, filename);
+            //save_xpm(w, filename);
+            save_binary(w, filename);
             success = 1;
             break;
         }

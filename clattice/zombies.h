@@ -33,9 +33,9 @@ typedef struct {
     int *sites;
 } world;
 
-inline int mod(int a, int b){ return a - b*((int)(a/b)) + b*(a<0); }
-inline int xy2ind(int N, int x, int y){ return x + N*y; }
-inline void ind2xy(int N, int ind, int *x, int *y){ *x = ind % N; *y = ind / N; }
+int mod(int a, int b);
+int xy2ind(int N, int x, int y);
+void ind2xy(int N, int ind, int *x, int *y);
 
 world *create_world(int N, float alpha);
 void blank_world(world *w);
@@ -55,5 +55,6 @@ void print_board(world *w);
 void print_bonds(world *w);
 void dostep(world *w);
 void save_xpm(world *w, char *filename);
+void save_binary(world *w, char *filename);
 
 #endif
