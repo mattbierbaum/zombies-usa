@@ -24,7 +24,7 @@ int main(int argc, char **argv){
     int NN = 8192;
     world *w = create_world(NN, alpha);
 
-    for (int sample=0; sample<1e2; sample++){
+    for (int sample=0; sample<2e2; sample++){
         int success = 0; 
 
         while (success == 0){

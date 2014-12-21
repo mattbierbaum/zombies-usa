@@ -1,4 +1,4 @@
-EXE=do_snap do_stats do_snap_series
+EXE=do_snap do_stats do_snap_series do_snap_large
 OBJECTS=pcg_basic.o zombies.o
 CFLAGS=-std=c99 -Wall -Wextra -Werror -pedantic -flto -O3 -Ofast -m64 -march=native -fopenmp -D_POSIX_C_SOURCE=199309L
 LDLIBS=-lm -lrt -g

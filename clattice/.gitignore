@@ -5,3 +5,4 @@ do_stats
 do_snap
 do_clusters
 do_snap_series
+do_snap_large
