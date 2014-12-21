@@ -5,6 +5,7 @@ import scipy.optimize as opt
 from scipy import misc
 import copy
 import glob
+import os
 from operator import itemgetter
 
 def coarse_grain(field, factor=2, majority=1):
@@ -36,23 +37,34 @@ def exponent(boxes, areas, dim=2, lower=2, upper=2):
     return p[0]
 
 def single_fit(name):
-    image = misc.imread(name)
-    binary = 1 - 1*(image != 0)
+    image = pl.imread(name)
+    #binary = 1 - 1*(image != 0)
+    #binary = 1*(image != 0)
+    binary = 1*(image.mean(axis=-1) != 1)
     tb, ta = getcurve(binary)
     fit = exponent(tb, ta)
+    #fit[0] = -91./48
     pl.figure()
-    pl.loglog(tb, ta, 'o-')
+    pl.imshow(binary)
+    pl.figure()
+    pl.loglog(tb, ta, 'o')
     pl.loglog(tb, powerlaw(fit, tb, ta), '-')
-
+    return fit
 
 def analyze_all():
     exps = []
     fig = pl.figure()
 
-    for ind, pic in enumerate(glob.glob("./*.png")):
+    #for ind, pic in enumerate(glob.glob("./*.png")):
+    for ind in xrange(500):
+        pic = "snap_%04d.xpm.png" % ind #ind, pic in enumerate(glob.glob("./*.png")):
+        if not os.path.exists(pic):
+            continue
         print ind
-        image = misc.imread(pic)
-        binary = 1 - 1*(image == 1)
+        image = pl.imread(pic)
+        #binary = 1 - 1*(image == 1)
+        #binary = 1*(image != 2)
+        binary = 1*(image.mean(axis=-1) != 1)
 
         tb, ta = getcurve(binary)
         fit = exponent(tb, ta)
