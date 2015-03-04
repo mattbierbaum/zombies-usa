@@ -243,7 +243,7 @@ void dostep(world *w){
         return;
     }
 
-    if (test < w->alpha){
+    if (test < 1.0/(1+w->alpha)){
         ind = ind0 * (w->grid[ind0] == SS) + ind1 * (w->grid[ind1] == SS);
         ind2xy(w->N, ind, &tx, &ty);
         add_zombie(w, tx, ty);

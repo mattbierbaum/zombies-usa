@@ -9,7 +9,8 @@ if (isNode)
 else
     var localbinaryheap = binaryheap;
 
-var S2Z = "B";
+var S2E = "B";
+var E2Z = "C";
 var Z2R = "K";
 var I2R = "R";
 var MOV = "M";
@@ -26,9 +27,19 @@ function dec_z(s, sim) {
     sim.Z -= 1;
     sim.N -= 1;
 }
+function inc_e(s, sim) {
+    s.E = s.E + 1;
+    s.S = s.S - 1;
+    sim.S -= 1;
+    sim.E += 1;
+}
 function bite(s, sim){
-    s.S = s.S - 1; s.Z = s.Z + 1;
-    sim.S -= 1; sim.Z += 1;
+    s.S = s.S - 1; s.E = s.E + 1;
+    sim.S -= 1; sim.E += 1;
+}
+function convert(s, sim){
+    s.E = s.E - 1; s.Z = s.Z + 1;
+    sim.E -= 1; sim.Z += 1;
 }
 function kill(s, sim){
     s.Z = s.Z - 1; s.R = s.R + 1;
@@ -166,6 +177,7 @@ function Site(x, y, N, h){
 
     this.N = N;
     this.S = N;
+    this.E = 0;
     this.Z = 0;
     this.R = 0;
 
@@ -177,17 +189,20 @@ function Site(x, y, N, h){
 function Simulation(board){
     this.alpha = 1;
     this.mu = 1;
+    this.eta = 2;
+    this.beta = 1;
+    this.Nfact = 1;
     this.time = 0;
     this.sites = {};
     this.bonds = {};
-    this.static_types = [S2Z, Z2R];
-    this.motion_types = [S2Z, Z2R];
+    this.static_types = [S2E, E2Z, Z2R];
+    this.motion_types = [S2E, Z2R];
     this.heap = new localbinaryheap.BinaryHeap(tauGetter, hashGetter);
     this.board = board;
 
     var tot = board.get_total();
     this.S = tot; this.N = tot;
-    this.Z = 0; this.R = 0;
+    this.E = 0; this.Z = 0; this.R = 0;
     this.lh = '';
 }
 
@@ -225,9 +240,12 @@ Simulation.prototype = {
 
     update_bond: function (bond) {
         var weight = 0;
-        if (bond.type == S2Z){
+        if (bond.type == S2E){
             weight = this.sites[bond.s0].S * this.sites[bond.s1].Z;
             weight *= (bond.s0 == bond.s1) ? 1 : this.mu;
+        }
+        if (bond.type == E2Z){
+            weight = this.eta * this.sites[bond.s0].E;
         }
         if (bond.type == Z2R){
             weight = this.alpha * this.sites[bond.s0].Z * this.sites[bond.s1].S;
@@ -273,7 +291,7 @@ Simulation.prototype = {
         var s0 = this.get_site(x,y);
         if (s0.N <= 0 || s0.Z > 0) return 0;
 
-        if (type == S2Z) bite(s0, this);
+        if (type == E2Z) convert(s0, this);
         if (type == MOV) inc_z(s0, this);
 
         var neighs = this.board.neigh(x,y);
@@ -299,6 +317,14 @@ Simulation.prototype = {
         return 1
     },
 
+    doBite: function (x, y, type){
+        var s0 = this.get_site(x,y);
+        if (s0.N <= 0 || s0.E > 0) return 0;
+
+        if (type == S2E) inc_e(s0, this);
+        this.push_bond(s0, s0, E2Z);
+    },
+
     dostep: function() {
        // Get the next interaction
         var bond = this.heap.pop();
@@ -308,11 +334,17 @@ Simulation.prototype = {
         this.time = bond.tau;
         var site = this.sites[bond.s0];
         var site2 = this.sites[bond.s1];
-        if (bond.type == S2Z){
+        if (bond.type == S2E){
+            if (site.E == 0)
+                this.doBite(site.x, site.y, bond.type);
+            else
+                bite(site, this);
+        }
+        if (bond.type == E2Z){
             if (site.Z == 0)
                 this.addZombieSeed(site.x, site.y, bond.type);
             else
-                bite(site, this);
+                convert(site, this);
         }
         if (bond.type == Z2R)
             kill(site, this);
@@ -346,7 +378,8 @@ Simulation.prototype = {
     },
 }
 
-exports.S2Z = S2Z;
+exports.S2E = S2E;
+exports.E2Z = E2Z;
 exports.Z2R = Z2R;
 exports.I2R = I2R;
 exports.MOV = MOV;
