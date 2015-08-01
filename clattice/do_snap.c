@@ -29,5 +29,6 @@ int main(int argc, char **argv){
         dostep(w);
     save_xpm(w, filename);
 
+    destroy_world(w);
     return 0;
 }

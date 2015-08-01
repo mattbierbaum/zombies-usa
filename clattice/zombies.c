@@ -29,10 +29,18 @@ world *create_world(int N, float alpha){
     w->grid = malloc(sizeof(char)*N*N);
     w->bonds = malloc(sizeof(int)*N*N*4);
     w->bondgrid = malloc(sizeof(int)*N*N*4);
-    w->sites = malloc(sizeof(int)*N*N);
+    w->sites = malloc(sizeof(int)*N*N*2);
 
     blank_world(w);
     return w;
+}
+
+void destroy_world(world *w){
+    free(w->grid);
+    free(w->bonds);
+    free(w->bondgrid);
+    free(w->sites);
+    free(w);
 }
 
 void blank_world(world *w){
@@ -42,9 +50,6 @@ void blank_world(world *w){
     w->nbonds = 0;
     w->nsites = 0;
 
-    /*memset(w->grid, 0, sizeof(w->grid));
-    memset(w->bonds, ~0, sizeof(w->bonds));
-    memset(w->bondgrid, ~0, sizeof(w->bondgrid));*/
     for (int i=0; i<4*w->N*w->N; i++){
         w->grid[i/4] = 0;
         w->sites[i/4] = 0;
@@ -82,7 +87,7 @@ int inds2bond(int N, int ind0, int ind1){
     ind2xy(N, ind0, &x0, &y0);
     ind2xy(N, ind1, &x1, &y1);
 
-    int level = 0;
+    int level = -1;
     if (y0 == y1){
         if (x1-x0 == -1 || x1-x0 == N-1) level=0;
         if (x1-x0 ==  1 || x1-x0 == 1-N) level=1;
@@ -90,6 +95,8 @@ int inds2bond(int N, int ind0, int ind1){
         if (y1-y0 == -1 || y1-y0 == N-1) level=2;
         if (y1-y0 ==  1 || y1-y0 == 1-N) level=3;
     }
+    if (level == -1)
+        printf("Not a bond!\n");
     return ind0 + level*N*N;
 }
 
@@ -230,7 +237,6 @@ void print_bonds(world *w){
 void dostep(world *w){
     int nextbind = pcg32_boundedrand_r(&rng, w->nbonds); //ran_int(0, w->nbonds);
     int nextbond = w->bonds[nextbind];
-    //float test = ran_ran2();
     double test = ldexp(pcg32_random_r(&rng), -32);
 
     int ind0, ind1;
@@ -294,6 +300,8 @@ void save_xpm(world *w, char *filename){
     FILE *f = fopen(filename, "w");
     fprintf(f, "%s", contents);
     fclose(f);
+
+    free(contents);
 }
 
 void save_binary(world *w, char *filename){

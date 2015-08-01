@@ -28,7 +28,7 @@ typedef struct {
     // true / false whether a bond exists
     int *bondgrid;
 
-    // sites that have been filled
+    // sites that have been filled (only needed for reset_inplace speed)
     int nsites;
     int *sites;
 } world;
@@ -38,6 +38,7 @@ int xy2ind(int N, int x, int y);
 void ind2xy(int N, int ind, int *x, int *y);
 
 world *create_world(int N, float alpha);
+void destroy_world(world *w);
 void blank_world(world *w);
 void reset_inplace(world *w);
 void set_seed(uint64_t initstate, uint64_t initseq);
