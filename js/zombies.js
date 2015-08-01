@@ -3,8 +3,8 @@ Welcome to Zombietown USA, a disease dynamics simulation of zombism across the U
 We use Gillespie dynamics on block-level census data from 2010 using 308 \
 million people interacting across the continental US.\n\n\
 Parameters:\n\n\
-\u03B1 - bite to kill ratio\n\
-\u03BC - inter-cell propogation speed\n\n\
+\u03B1 - kill to bite ratio\n\
+\u03BC - time for zombie to walk 1 mile\n\n\
 Controls:\n\n\
 Click on the map to place a new zombie, and use the controls on the left to \
 change parameters of the simulation. ";
@@ -48,7 +48,11 @@ ZombiesUI.prototype = {
             this.usboard = new simulation.USAMapBoard(dat);
             this.sim = new simulation.Simulation(this.usboard);
             this.sim.alpha = 0.8;
-            this.sim.mu = 1./(75*this.sim.alpha);
+
+            this.escapetime = 11; //hours to escape a cell
+            this.sim.beta = 3.6e-3/2;
+            this.sim.Nfact = 500;
+            this.sim.mu = 1.0/(this.escapetime*this.sim.beta*this.sim.Nfact);
 
             this.init_gui();
         }));
@@ -138,7 +142,7 @@ ZombiesUI.prototype = {
                 topp+135, button_width, button_height);
 
         this.slider_alpha = new Slider("\u03B1", sleft+50, topp, 90, 0, 3);
-        this.slider_mu    = new Slider("\u03BC", sleft+50, topp+25, 90, 1, 500);
+        this.slider_mu    = new Slider("\u03BC", sleft+50, topp+25, 90, 1, 100);
         this.slider_steps = new Slider("step/draw", sleft+50, topp+50, 90, 0, 2000);
 
         this.pauseButton.handler = this.bind(function (){ this.playpause(); });
@@ -146,12 +150,13 @@ ZombiesUI.prototype = {
         this.slider_alpha.handler = this.bind(function (val){ this.sim.alpha = val; });
         this.slider_steps.handler = this.bind(function (val){ this.stepsper = val; });
         this.slider_mu.handler = this.bind(function (val){
-            this.sim.mu =  1./(val*this.sim.alpha);
+            this.escapetime = val;
+            this.sim.mu = 1.0/(this.escapetime*this.sim.beta*this.sim.Nfact);
         });
         var textbox = new TextBox(left+10, topp+180, width-10, height-topp-160, helptext, this.ctx);
 
         this.slider_alpha.value = this.sim.alpha;
-        this.slider_mu.value = 75;
+        this.slider_mu.value = 11;
         this.slider_steps.value = this.stepsper;
 
         this.uielem = []
@@ -190,7 +195,9 @@ ZombiesUI.prototype = {
     reset: function(){
         this.sim = new simulation.Simulation(this.usboard);
         this.sim.alpha = this.slider_alpha.value;
-        this.sim.mu = this.slider_mu.value;
+
+        this.escapetime = this.slider_mu.value;
+        this.sim.mu = 1.0/(this.escapetime*this.sim.beta*this.sim.Nfact);
 
         this.ctxoff.drawImage(this.map, 0, 0 );
         this.mapcopy = this.ctxoff.getImageData(0, 0,
@@ -231,7 +238,7 @@ ZombiesUI.prototype = {
         if (sim){
             this.ctx.font = '24px sans-serif';
             this.ctx.fillStyle='rgba(255,255,255,0.8)';
-            var txt = "Time since infection: "+toFixed(this.sim.time*2, 4)+" hours";
+            var txt = "Time since infection: "+toFixed(this.sim.time*1.0/(this.sim.beta*this.sim.Nfact), 4)+" hours";
             var size = this.ctx.measureText(txt).width;
             this.ctx.fillText(txt, this.canvas.width/2 - size/2, 40);
 
@@ -267,7 +274,7 @@ ZombiesUI.prototype = {
                 var hover = false;
                 for (var i=0; i<this.uielem.length; i++) if (this.uielem[i].hovered == true) hover = true;
                 if (x > 0 && x < this.mapWmax && y > 0 && y < this.mapHmax && !hover)
-                    this.sim.addZombieSeed(x, y, simulation.S2Z);
+                    this.sim.doBite(x, y, simulation.S2E);
             }
 
         }
