@@ -6,8 +6,9 @@
 #include "zombies.h"
 
 int main(int argc, char **argv){
-    double alpha = 0.69572712;
+    double alpha = 0.69572736;
     char filename[1024];
+    int NN = 4096;
 
     strncpy(filename, "/media/scratch/hi.xpm", sizeof(filename));
 
@@ -15,30 +16,29 @@ int main(int argc, char **argv){
     if (argc >= 2)
         strncpy(filename, argv[1], sizeof(filename));
     if (argc >= 3)
-        alpha = atof(argv[2]);
+        NN = atoi(argv[2]);
     
     set_seed(time(NULL) ^ (intptr_t)&printf, (intptr_t)&round);
-
-    int NN = 8192;
-    world *w = create_world(NN, alpha);
+    world *w = create_world(2*NN, alpha);
 
     int success = 0; 
 
     while (success == 0){
         reset_inplace(w);
-        add_zombie(w, NN/2, NN/2);
+        add_zombie(w, NN, NN);
 
-        while (w->nbonds > 0)
+        while (w->nbonds > 0 &&
+               ((w->maxx - w->minx) < NN-1 && (w->maxy - w->miny) < NN-1))
             dostep(w);
         
-        if (w->maxx - w->minx > NN-4 || w->maxy - w->miny > NN-4){
-            printf("Saving %s -- ", filename);
-            //save_xpm(w, filename);
+        if (w->maxx - w->minx > NN-2 || w->maxy - w->miny > NN-2){
+            printf("%i %i\n", w->maxx-w->minx, w->maxy-w->miny);
             save_binary(w, filename);
             success = 1;
             break;
         }
     }
 
+    destroy_world(w);
     return 0;
 }

@@ -6,7 +6,7 @@
 #include "zombies.h"
 
 int main(int argc, char **argv){
-    double alpha = 0.69572712;
+    double alpha = 0.69572736;
     char filename[1024];
 
     strncpy(filename, "/media/scratch/hi.xpm", sizeof(filename));
@@ -21,21 +21,22 @@ int main(int argc, char **argv){
     
     set_seed(time(NULL) ^ (intptr_t)&printf, (intptr_t)&round);
 
-    int NN = 8192;
+    int NN = 4096;
     world *w = create_world(NN, alpha);
 
-    for (int sample=0; sample<2e2; sample++){
+    for (int sample=0; sample<1e4; sample++){
         int success = 0; 
 
         while (success == 0){
             reset_inplace(w);
             add_zombie(w, NN/2, NN/2);
 
-            while (w->nbonds > 0)
+            while ((w->nbonds > 0 &&
+                (w->maxx - w->minx < NN-1 || w->maxy - w->miny < NN-1)))
                 dostep(w);
             
-            if (w->maxx - w->minx > NN-4 || w->maxy - w->miny > NN-4){
-                sprintf(filename, "/media/scratch/zombies/snaps/snap_%04d.xpm", sample);
+            if (w->maxx - w->minx > NN-2 || w->maxy - w->miny > NN-2){
+                sprintf(filename, "/media/scratch/zombies/snaps_%i/snap_%04d.xpm", NN, sample);
                 printf("Saving %s -- ", filename);
                 save_xpm(w, filename);
                 success = 1;
