@@ -55,15 +55,14 @@ def analyze_all():
     exps = []
     fig = pl.figure()
 
-    #for ind, pic in enumerate(glob.glob("./*.png")):
-    for ind in xrange(500):
-        pic = "snap_%04d.xpm.png" % ind #ind, pic in enumerate(glob.glob("./*.png")):
+    files = glob.glob('./*.png')
+    files.sort()
+
+    for ind, pic in enumerate(files):
         if not os.path.exists(pic):
             continue
         print ind
         image = pl.imread(pic)
-        #binary = 1 - 1*(image == 1)
-        #binary = 1*(image != 2)
         binary = 1*(image.mean(axis=-1) != 1)
 
         tb, ta = getcurve(binary)

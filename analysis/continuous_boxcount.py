@@ -33,15 +33,17 @@ def powerlaw_fit(p,bs,bc):
 def exponent(boxes, areas, dim=2, lower=2, upper=2):
     tb = boxes[lower:-upper]
     ta = areas[lower:-upper]
-    p = opt.leastsq(powerlaw_fit, [-2,1e5], args=(tb,ta)) 
+    p = opt.leastsq(powerlaw_fit, [-2,1e5], args=(tb,ta))
     return p[0]
 
-def analyze_all():
+def analyze_all(size=8196, N=10000):
     current = 0
-    
-    filename = '/media/scratch/test.bin'
-    while True:
-        check_output(['do_snap_large', filename])
+
+    filename = '/tmp/test.bin'+str(size)+str(np.random.random())
+
+    N = N or int(1e8)
+    for i in xrange(N):
+        check_output(['do_snap_large', filename, str(size)])
 
         image = np.fromfile(filename, dtype='uint8')
         sidelen = np.sqrt(image.shape[0])
@@ -53,5 +55,11 @@ def analyze_all():
         fit = exponent(tb, ta)
         print fit[0]
 
+""" unbuffer python continuous_boxcount.py 8192 > file.txt """
 if __name__ == "__main__":
-    analyze_all()
+    import sys
+    if len(sys.argv) > 1:
+        size = int(sys.argv[1])
+        analyze_all(size=size)
+    else:
+        analyze_all()
