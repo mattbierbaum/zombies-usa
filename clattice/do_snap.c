@@ -6,10 +6,10 @@
 #include "zombies.h"
 
 int main(int argc, char **argv){
-    double alpha = 0.43734465;
+    double alpha = 0.437345866;
     char filename[1024];
 
-    strncpy(filename, "./hi.xpm", sizeof(filename));
+    strncpy(filename, "/media/scratch/hi.xpm", sizeof(filename));
 
     int round = 0;
     if (argc >= 2)

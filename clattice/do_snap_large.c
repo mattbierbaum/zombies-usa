@@ -6,7 +6,7 @@
 #include "zombies.h"
 
 int main(int argc, char **argv){
-    double alpha = 0.69572736;
+    double alpha = 0.437345866;
     char filename[1024];
     int NN = 4096;
 

@@ -58,8 +58,11 @@ def analyze_all(size=8196, N=10000):
 """ unbuffer python continuous_boxcount.py 8192 > file.txt """
 if __name__ == "__main__":
     import sys
+    N = 10000
+    size = 8196
+
     if len(sys.argv) > 1:
         size = int(sys.argv[1])
-        analyze_all(size=size)
-    else:
-        analyze_all()
+    if len(sys.argv) > 2:
+        N = int(sys.argv[2])
+    analyze_all(size=size, N=N)

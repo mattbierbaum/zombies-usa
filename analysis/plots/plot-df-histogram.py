@@ -5,8 +5,8 @@ from matplotlib.colors import Normalize
 from matplotlib import cm
 import matplotlib.pyplot as pl
 
-sizes = np.array([64,128,256,512,1024,2048])
-data = np.array([np.loadtxt("./raw-%i.txt" % i) for i in sizes])
+sizes = np.array([128,256,512,1024,2048])
+data = np.array([np.loadtxt("./df-hist-raw-%i.txt" % i) for i in sizes])
 dev = np.array([91./48+d.mean() for d in data])
 std = np.array([d.std() for d in data])
 
@@ -14,7 +14,7 @@ colors = cm.copper(Normalize()(np.arange(len(dev))))
 
 x,y = [],[]
 for t in data:
-    ty, tx = np.histogram(t, bins=30, normed=True)
+    ty, tx = np.histogram(t, bins=25, normed=True)
     x.append((tx[:1]+tx[:-1])/2)
     y.append(ty)
 x = np.array(x).T
@@ -24,25 +24,30 @@ def rescale(sizes, xs, ys, dfc, tau):
     return (xs+dfc)*sizes**tau, ys*sizes**-tau
 
 def plotall():
-    fig = pl.figure(1)
+    """
+    Note: to save, use dpi=300 to match other plots
+    """
+    fig = pl.figure()
     for s,tx,ty,tc in zip(sizes,x.T,y.T,colors):
         pl.plot(tx, ty, 'o-', lw=2, c=tc, label=str(s))
     pl.xlabel(r"$d_f$")
     pl.ylabel(r"$P(d_f)$")
-    pl.legend(loc='lower right', prop={"size": 20})
+    pl.xlim(-1.825, -1.5)
+    pl.legend(loc='lower right', numpoints=1, markerscale=1.0, prop={"size": 12})
 
-    ox, oy = rescale(sizes, x, y, dfc=91./48, tau=0.29)
-    ax = fig.add_axes([0.58, 0.58, 0.30, 0.30])
+    ox, oy = rescale(sizes, x, y, dfc=91./48, tau=0.326)
+    ax = fig.add_axes([0.58, 0.58, 0.32, 0.32])
     for tx,ty,c in zip(ox.T, oy.T, colors):
         ax.loglog(tx, ty, 'o-', lw=2, c=c)
-    ax.set_xlim(0.33, 2.15)
+    ax.set_xlim(0.21, 2.73)
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_xlabel(r"$(d_f - d_f^{\infty}) / L^{\sigma}$", fontsize=20)
-    ax.set_ylabel(r"$L^{-\sigma}P(d_f)$", fontsize=20)
+    ax.set_xlabel(r"$(d_f - d_f^{\infty}) / L^{\sigma}$")
+    ax.set_ylabel(r"$L^{-\sigma}P(d_f)$")
+    pl.tight_layout()
 
-def slider_plot(sizes, xs, ys, dfc=91./48, tau=0.25):
-    fig = pl.figure(2)
+def slider_plot(sizes, xs, ys, dfc=91./48, tau=0.33):
+    fig = pl.figure()
     pl.subplots_adjust(left=0.25, bottom=0.25)
     pl.clf()
 
