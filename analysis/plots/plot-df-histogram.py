@@ -6,22 +6,22 @@ from matplotlib import cm
 import matplotlib.pyplot as pl
 
 sizes = np.array([128,256,512,1024,2048])
-data = np.array([np.loadtxt("./df-hist-raw-%i.txt" % i) for i in sizes])
-dev = np.array([91./48+d.mean() for d in data])
+data = -np.array([np.loadtxt("./df-hist-raw-%i.txt" % i) for i in sizes])
+dev = np.array([91./48-d.mean() for d in data])
 std = np.array([d.std() for d in data])
 
 colors = cm.copper(Normalize()(np.arange(len(dev))))
 
 x,y = [],[]
 for t in data:
-    ty, tx = np.histogram(t, bins=25, normed=True)
-    x.append((tx[:1]+tx[:-1])/2)
+    ty, tx = np.histogram(t, bins=24, normed=True)
+    x.append((tx[1:]+tx[:-1])/2)
     y.append(ty)
 x = np.array(x).T
 y = np.array(y).T
 
 def rescale(sizes, xs, ys, dfc, tau):
-    return (xs+dfc)*sizes**tau, ys*sizes**-tau
+    return (dfc-xs)*sizes**tau, ys*sizes**-tau
 
 def plotall():
     """
@@ -32,18 +32,19 @@ def plotall():
         pl.plot(tx, ty, 'o-', lw=2, c=tc, label=str(s))
     pl.xlabel(r"$d_f$")
     pl.ylabel(r"$P(d_f)$")
-    pl.xlim(-1.825, -1.5)
+    pl.xlim(1.815, 1.25)
+    pl.ylim(0, 15)
     pl.legend(loc='lower right', numpoints=1, markerscale=1.0, prop={"size": 12})
 
-    ox, oy = rescale(sizes, x, y, dfc=91./48, tau=0.326)
-    ax = fig.add_axes([0.58, 0.58, 0.32, 0.32])
+    ox, oy = rescale(sizes, x, y, dfc=91./48, tau=0.305)
+    ax = fig.add_axes([0.62, 0.58, 0.32, 0.32])
     for tx,ty,c in zip(ox.T, oy.T, colors):
         ax.loglog(tx, ty, 'o-', lw=2, c=c)
-    ax.set_xlim(0.21, 2.73)
+    ax.set_xlim(0.24, 3.97)
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_xlabel(r"$(d_f - d_f^{\infty}) / L^{\sigma}$")
-    ax.set_ylabel(r"$L^{-\sigma}P(d_f)$")
+    ax.set_xlabel(r"$(d_f^{\infty} - d_f) / L^{x}$")
+    ax.set_ylabel(r"$L^{-x}P(d_f)$")
     pl.tight_layout()
 
 def slider_plot(sizes, xs, ys, dfc=91./48, tau=0.33):
